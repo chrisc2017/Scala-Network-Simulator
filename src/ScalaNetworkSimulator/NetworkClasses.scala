@@ -10,14 +10,13 @@ class NetworkClasses {
 */
 
 class SwitchClass(name: String) {
-  var ports = new mutable.ArrayBuffer()
+  var ports = new mutable.ArrayBuffer[PortClass]()
   var MACaddrTable = new mutable.HashMap()
   
   def addPort(port: Object) = {
-    print("hello")
-    print(port.asInstanceOf[PortClass].IPAddr)
-    // new port 
-    //add it to our ports arrayBuffer
+    
+    // appends the newly added port to our ports ArrayBuffer
+    ports += port.asInstanceOf[PortClass]
   }
 }
 
@@ -41,16 +40,10 @@ class PortTypeClass(name: String, bandwith: Int, speed: Int) {
 }
 
 class PortClass(portNum: Int) {
+  
   //Look in our PortType Global List for portType = object.name
   var portType: PortTypeClass = null
+  
   var MACAddr = "None"
   var IPAddr = "None"
-  
-  def setIP(address: String) = {
-    this.IPAddr = address
-  }
-  
-  def setPortType(portType: String) = {
-    // set port Type to the object of portType
-  }
 }
