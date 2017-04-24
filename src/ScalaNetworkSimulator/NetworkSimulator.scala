@@ -27,9 +27,10 @@ class NetworkSimulator {
       
       val port = new PortClass(portNum)
       
-     
+      var aclass = devicePointer.getClass()
+      aclass
       // Add PortClass object to whatever Device we created (Switch,Router,PC)
-      devicePointer.getClass().getMethod("addPort", devicePointer.getClass()).invoke(devicePointer)
+      devicePointer.getClass().getMethod("addPort", classOf[Any]).invoke(devicePointer, port)
       
       
       // sets port Pointer to current PortClass we created
@@ -37,6 +38,7 @@ class NetworkSimulator {
       
       return this
     }
+    
     def uses(portType: String): this.type = {
       //portPointer.portType = classOf(portType)
       

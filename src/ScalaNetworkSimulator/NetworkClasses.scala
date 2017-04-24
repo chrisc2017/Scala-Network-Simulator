@@ -13,7 +13,9 @@ class SwitchClass(name: String) {
   var ports = new mutable.ArrayBuffer()
   var MACaddrTable = new mutable.HashMap()
   
-  def addPort = {
+  def addPort(port: Object) = {
+    print("hello")
+    print(port.asInstanceOf[PortClass].IPAddr)
     // new port 
     //add it to our ports arrayBuffer
   }
