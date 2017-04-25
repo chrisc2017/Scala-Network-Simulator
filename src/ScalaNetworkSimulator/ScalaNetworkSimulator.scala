@@ -6,10 +6,8 @@ object ScalaNetworkSimulator  extends NetworkSimulator{
     
     Switch name "sw3";
       Port num 5 uses "Fiber";
+    Switch name "sw3";
       
-    var a: Int = 4
-    print(a.getClass())
-    println("hello world")
     
     
   }

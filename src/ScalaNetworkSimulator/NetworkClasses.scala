@@ -15,12 +15,12 @@ class SwitchClass(name: String) {
   
   def addPort(port: Object) = {
     
-    // appends the newly added port to our ports ArrayBuffer
+    // appends the newly added port to our ports ArrayBufferz
     ports += port.asInstanceOf[PortClass]
   }
 }
 
-class ProtocolClass(name: String) {
+class RoutingProtocolClass(name: String) {
   
 }
 class RouterClass(name: String) {
