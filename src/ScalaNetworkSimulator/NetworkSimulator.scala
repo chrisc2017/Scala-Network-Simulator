@@ -6,9 +6,10 @@ import scala.collection.mutable
 class NetworkSimulator {
   
   // These are references we will keep in order to keep track of what devices we are setting up
-  var portPointer: PortClass = null
-  var devicePointer: AnyRef = null
-  var protocolPointer: RoutingProtocolClass = null
+  var portRef: PortClass = null
+  var deviceRef: AnyRef = null
+  var protocolRef: RoutingProtocolClass = null
+  var linkRef: LinkClass = null
   
   // This table holds all the devices (Swithces,using their name as the key 
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
@@ -23,9 +24,9 @@ class NetworkSimulator {
     
     def name(name: String) = {
       val protocol = new RoutingProtocolClass(name)
-      // Set our protocolPointerPointer reference to this class
+      // Set our protocolRefRef reference to this class
       // Next time we call our Port object we will know to add the port to this device
-      protocolPointer = protocol
+      protocolRef = protocol
       
       // Check if name already exists in our globalDeviceTable. If yes, give error and exit. Else, add to table
       if (globalProtocolTable.contains(name)) {
@@ -33,19 +34,19 @@ class NetworkSimulator {
         System.exit(0)
       }
       else {
-        globalProtocolTable += (name -> protocolPointer)
+        globalProtocolTable += (name -> protocolRef)
       }
     }
   }
   
-  // Helper objects for RoutingProtocol. We can access the RoutingProtocolClass object using our protocolPointer reference
+  // Helper objects for RoutingProtocol. We can access the RoutingProtocolClass object using our protocolRef reference
   
   // The learn object will set what values the RoutingProtocolClass should use when the Router's are first ran and start learning the network
   // Learn object parses the command
   // learn by (String). The string can be only support bandwith, speed, both
   object learn {
     def by(value: String) = {
-      protocolPointer.learn = value
+      protocolRef.learn = value
     }
   }
   
@@ -54,7 +55,7 @@ class NetworkSimulator {
   // choose by (String). The string can be only support min, max, avg
   object choose {
     def port(choose: String) = {
-      protocolPointer.choose = choose
+      protocolRef.choose = choose
     }
   }
   
@@ -64,9 +65,9 @@ class NetworkSimulator {
     
     def name(name: String) = {
       val device = new SwitchClass(name)
-      // Set our devicePointer reference to this class
+      // Set our deviceRef reference to this class
       // Next time we call our Port object we will know to add the port to this device
-      devicePointer = device
+      deviceRef = device
       
       // Check if name already exists in our globalDeviceTable. If yes, give error and exit. Else, add to table
       if (globalDeviceTable.contains(name)) {
@@ -74,7 +75,7 @@ class NetworkSimulator {
         System.exit(0)
       }
       else {
-        globalDeviceTable += (name -> devicePointer)
+        globalDeviceTable += (name -> deviceRef)
       }
     }
     
@@ -87,9 +88,9 @@ class NetworkSimulator {
     def name(name: String) = {
       val device = new PCClass(name);
       
-      // Set our devicePointer reference to this class
+      // Set our deviceRef reference to this class
       // Next time we call our Port object we will know to add the port to this device
-      devicePointer = device
+      deviceRef = device
       
       // Check if name already exists in our globalDeviceTable. If yes, give error and exit. Else, add to table
       if (globalDeviceTable.contains(name)) {
@@ -97,7 +98,7 @@ class NetworkSimulator {
         System.exit(0)
       }
       else {
-        globalDeviceTable += (name -> devicePointer)
+        globalDeviceTable += (name -> deviceRef)
       }
     }
     
@@ -110,9 +111,9 @@ class NetworkSimulator {
     def name(name: String) = {
       val device = new RouterClass(name);
       
-      // Set our devicePointer reference to this class
+      // Set our deviceRef reference to this class
       // Next time we call our Port object we will know to add the port to this device
-      devicePointer = device
+      deviceRef = device
       
       // Check if name already exists in our globalDeviceTable. If yes, give error and exit. Else, add to table
       if (globalDeviceTable.contains(name)) {
@@ -120,7 +121,7 @@ class NetworkSimulator {
         System.exit(0)
       }
       else {
-        globalDeviceTable += (name -> devicePointer)
+        globalDeviceTable += (name -> deviceRef)
       }
     }
     
@@ -136,15 +137,15 @@ class NetworkSimulator {
     
     def protocol(name: String) = {
       
-      val router = devicePointer.asInstanceOf[RouterClass]
+      val router = deviceRef.asInstanceOf[RouterClass]
       router.protocol = globalProtocolTable.getOrElse(name, sys.error("You are trying to assign a router to routing protocol " + name + "which does not exist.\nPlease check your configuration file."))
     }
   }
   
   
   // The Port object parses the commands (brackets represent optional values. Parenthesis for variables)
-  // Port num (Int) [uses (String)] [IPaddress (String)]
-  object Port{
+  // port num (Int) [uses (String)] [IPaddress (String)]
+  object port{
     
     def num(portNum: Int): this.type = {
       
@@ -155,31 +156,65 @@ class NetworkSimulator {
       // Add PortClass object to whatever Device we created (Switch,Router,PC)
       // The reason we invoke a method in this instance is because we know that SwitchClass, RouterClass
       //   and PCClass all have the method addPort.
-      devicePointer.getClass().getMethod("addPort", classOf[Any]).invoke(devicePointer, port)
+      deviceRef.getClass().getMethod("addPort", classOf[Any]).invoke(deviceRef, port)
       
-      // sets port Pointer to current PortClass we created
-      portPointer = port
+      // sets portRef to current PortClass we created
+      portRef = port
       
       return this
     }
     
     def uses(portType: String): this.type = {
       //All we have to do is set the PortType but we need to instantiate Fiber, Ethernet, etc first.
-      //portPointer.portType = classOf(portType)
+      //portRef.portType = classOf(portType)
       
       return this
     }
     
     def IPAddress(IPAddr: String) = {
       /* Can do checks here to make
-      if (devicePointer.getClass() == classOf[SwitchClass]) {
+      if (deviceRef.getClass() == classOf[SwitchClass]) {
         print("error: you cannot assign an IP Address to a switch port")
         exit(0)
       }*/
       
-      portPointer.IPAddr = IPAddr
+      portRef.IPAddr = IPAddr
     }
     
+  }
+  
+  // Links between devices
+  // We only use this object as a syntax requirement (meaning you have to specify your Links; section in the configuration)
+  object Links {
+    // Don't really need to do anything here
+  }
+  
+  // links helper methods
+  
+  // The connect object is what we are using to instantitate LinkClass objects
+  // The connect object parses the commands (brackets represent optional values. Parenthesis for variables)
+  // connect deviceA (String) portA (Int) deviceB (String) portB (Int)
+  object connect {
+    
+    //entry point of our connect command
+    def deviceA(name: String): this.type = {
+      val link = new LinkClass()
+      link.deviceA = globalDeviceTable.getOrElse(name, sys.error("Device A (named: " + name + ") does not exist. Please change the name of deviceA"))
+      linkRef = link
+      return this
+    }
+    
+    def portA(num: Int): this.type = {
+      return this
+    }
+    
+    def deviceB(name: String): this.type = {
+      return this
+    }
+    
+    def portB(num: Int): this.type = {
+      return this
+    }
   }
   
 }
