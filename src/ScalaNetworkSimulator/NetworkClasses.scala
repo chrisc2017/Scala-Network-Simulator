@@ -21,10 +21,12 @@ class SwitchClass(name: String) {
 }
 
 class RoutingProtocolClass(name: String) {
-  
+  var learn = ""
+  var choose = ""
 }
+
 class RouterClass(name: String) {
-  
+  var protocol: RoutingProtocolClass = null
 }
 
 class PCClass(name: String) {

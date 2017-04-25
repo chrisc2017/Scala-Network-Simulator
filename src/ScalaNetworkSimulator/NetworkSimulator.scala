@@ -17,7 +17,9 @@ class NetworkSimulator {
   // var Fiber: PortTypeClass = PortTypeClass()
   // add it to GlobalPortType hashmap with the name as the key
   
-  object RoutingProtcol {
+  // The RoutingProtocol object parses the commands (brackets represent optional values. Parenthesis for variables)
+  // RoutingProtocol name (String)
+  object RoutingProtocol {
     
     def name(name: String) = {
       val protocol = new RoutingProtocolClass(name)
@@ -33,6 +35,26 @@ class NetworkSimulator {
       else {
         globalProtocolTable += (name -> protocolPointer)
       }
+    }
+  }
+  
+  // Helper objects for RoutingProtocol. We can access the RoutingProtocolClass object using our protocolPointer reference
+  
+  // The learn object will set what values the RoutingProtocolClass should use when the Router's are first ran and start learning the network
+  // Learn object parses the command
+  // learn by (String). The string can be only support bandwith, speed, both
+  object learn {
+    def by(value: String) = {
+      protocolPointer.learn = value
+    }
+  }
+  
+  // The choose object will set what values the RoutingProtocolClass should use when the Router chooses which port to send data
+  // choose object parses the command
+  // choose by (String). The string can be only support min, max, avg
+  object choose {
+    def port(choose: String) = {
+      protocolPointer.choose = choose
     }
   }
   
@@ -102,6 +124,21 @@ class NetworkSimulator {
       }
     }
     
+  }
+  
+  // Helper objects for Router
+  
+  
+  // The routing object will select what routing protocol the router should use
+  // routing object parses the command
+  // routing protocol (String). 
+  object routing {
+    
+    def protocol(name: String) = {
+      
+      val router = devicePointer.asInstanceOf[RouterClass]
+      router.protocol = globalProtocolTable.getOrElse(name, sys.error("You are trying to assign a router to routing protocol " + name + "which does not exist.\nPlease check your configuration file."))
+    }
   }
   
   
