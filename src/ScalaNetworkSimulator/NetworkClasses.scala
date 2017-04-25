@@ -10,13 +10,14 @@ class NetworkClasses {
 */
 
 class SwitchClass(name: String) {
+  
   var ports = new mutable.ArrayBuffer[PortClass]()
   var MACaddrTable = new mutable.HashMap()
   
-  def addPort(port: Object) = {
+  def addPort(port: PortClass) = {
     
     // appends the newly added port to our ports ArrayBufferz
-    ports += port.asInstanceOf[PortClass]
+    ports += port
   }
 }
 
@@ -26,11 +27,26 @@ class RoutingProtocolClass(name: String) {
 }
 
 class RouterClass(name: String) {
+  
+  var ports = new mutable.ArrayBuffer[PortClass]()
   var protocol: RoutingProtocolClass = null
+  
+  def addPort(port: PortClass) = {
+    
+    // appends the newly added port to our ports ArrayBufferz
+    ports += port
+  }
 }
 
 class PCClass(name: String) {
   
+  var ports = new mutable.ArrayBuffer[PortClass]()
+  
+  def addPort(port: PortClass) = {
+    
+    // appends the newly added port to our ports ArrayBufferz
+    ports += port
+  }
 }
 
 class LinkClass {
