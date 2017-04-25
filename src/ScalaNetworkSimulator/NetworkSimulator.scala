@@ -156,7 +156,7 @@ class NetworkSimulator {
       // Add PortClass object to whatever Device we created (Switch,Router,PC)
       // The reason we invoke a method in this instance is because we know that SwitchClass, RouterClass
       //   and PCClass all have the method addPort.
-      deviceRef.getClass().getMethod("addPort", classOf[Any]).invoke(deviceRef, port)
+      deviceRef.getClass().getMethod("addPort", classOf[PortClass]).invoke(deviceRef, port)
       
       // sets portRef to current PortClass we created
       portRef = port
