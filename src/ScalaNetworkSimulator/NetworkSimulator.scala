@@ -277,6 +277,30 @@ class NetworkSimulator {
    * 
    */
   
+  //this method will find matching destination mac address for the known destination IP address
+  //this request can be sent from Routers or PC's
+  def requestARP(pdu: PDU){
+    
+    if(pdu(6).getClass().isInstanceOf[SwitchClass]){
+      for(counter <- 1 to pdu(6).getClass().ports.size() ){
+        
+        if(pdu(6).getClass().ports.get(counter) != pdu(5) ){
+          //update PDU(5) and PDU(6) to the port# and device ref of the port on the opposite side of the Link
+          pdu(5) = globalLinksTable.get(pdu(6).getClass().ports.get(counter).num)
+          pdu(6) = globalLinksTable.get(pdu(6).getClass().ports.get(counter).device)//will need to fix this .device soon
+          println("forwarding ARP request out of port " + counter.toString())
+          requestARP(pdu)//causes recursive call
+        }
+        //do nothing if the pdu(5) == the counter # <---- we dont want to forward ARPrequest back to the devices that sent the original ARPrequest
+      }//end of loop
+    }
+    else {
+      println("Device "+pdu(6).name + "is dropping the packet because the Dest IP address does not match its IP address)
+    }
+    
+    
+  }
+  
   
   
   
