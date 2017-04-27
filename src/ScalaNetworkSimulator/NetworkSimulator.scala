@@ -11,9 +11,14 @@ class NetworkSimulator {
   var protocolRef: RoutingProtocolClass = null
   var linkRef: LinkClass = null
   
+  
+  
   // This table holds all the devices (Swithces,using their name as the key 
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
   var globalProtocolTable: mutable.HashMap[String, RoutingProtocolClass] = new mutable.HashMap[String, RoutingProtocolClass]()
+  var globalLinksTable: mutable.HashMap[PortClass, PortClass] = new mutable.HashMap[PortClass, PortClass]()
+  var globalMACaddressCheck: mutable.HashSet[MACAddress] = new mutable.HashSet[MACAddress]()
+  
   
   // var Fiber: PortTypeClass = PortTypeClass()
   // add it to GlobalPortType hashmap with the name as the key
@@ -216,5 +221,68 @@ class NetworkSimulator {
       return this
     }
   }
+  
+  
+  //sudo code for methods that move data packet (called PDU):
+  /*
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   * //------------------------------------------------------------------------------------------
+   * when using any PC command: send, ping, traceroute -> read input form CLI and parse into a PDU
+   * 
+   * myPDU.packet(0) = source IP address
+   * myPDU.packet(1) = destination IP address
+   * myPDU.packet(2) = source MAC address
+   * myPDU.packet(3) = destination MAC address
+   * myPDU.packet(4) = data to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
+   * myPDU.packet(5) = current port #
+   * myPDU.packet(6) = current device reference
+   */
+  
+  /*Def switchSend{
+   * 
+   * receive PDU <- PDU assigned to this device reference is the incoming port on this switch
+   *  
+   * 
+   * SwitchName.update(PDU.packet(0), PDU.packet(5) )//update the MACAddressTable
+   * 
+   * //if we already know where to send this
+   * if SwitchName.MACaddrTable.contains( PDU.packet(3) ){ //if true forward data out this port to the next device
+   * 
+   *  	PDU.packet(5) = SwitchName.MACaddrTable.get(PDU.packet(3) )
+   *    
+   * else{//if we dont know where to send this
+   * 		SwitchName.update(PDU.packet(0), PDU.packet(5) )//store this in the MACaddressTable
+   * 		
+   * 		for( counter <- 0 until SwitchName.ports.size() ){//loop over all elements int MACAdressTable
+ 
+        	if(!PDU.packet(5) == SwitchName.ports(counter).num ){//make sure we do not send an ARP request out the same port we just received the PDU
+        		sendARP()//this will find out the MACaddress which corresponds to this PDU's dest IP address.
+        	}
+    		}//end loop
+   * 
+   * 		
+   * }
+   * 
+   * }//end of switchSend
+   * 
+   */
+  
+  
+  
+  
+  
+  
+  
+  
   
 }
