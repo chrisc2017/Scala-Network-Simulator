@@ -301,7 +301,48 @@ class NetworkSimulator {
     
   }
   
-  
+  //sudo code for sending PDU accross the network <----- will rewrite as recursive method
+  def sendPDU( this.pdu: PDU){
+    
+    if (pdu(3) == "null"){
+      pdu(3) = sendARP(PDU) 
+    }
+    
+    while( pdu(1) != pdu(6).getClass().port.num   ){
+      
+      //if the current port is on a PC
+      if( pdu(6).getClass() == PCClass ){
+        pdu(5) = globalLinksTable.get( pdu(6) ).port.num //get the new port number
+        pdu(6) = globalLinksTable.get( pdu(6) ) //how we move to the next device
+        println("sending PDU out of port " + pdu(5).toString() )
+      }
+      
+      //if the current port is on a Switch
+      if( pdu(6).getClass() == SwitchClass ){
+        
+        //if the incoming port # is in the table
+        if( pdu(6).MACAddressTable.contains(pdu(3)) ){
+          
+          //get new port number
+          var tempPort: PortClass = new PortClass
+          tempPort.portnum = pdu(6).MACAddressTable.get( pdu(3)).portnum
+          tempPort.device = pdu(6)
+          
+          //get next port
+          pdu(5) = globalLinksTable.get( tempPort).portnum
+          pdu(6) = globalLinksTable.get( tempPort).device
+        }
+        else{
+          //flood pdu copies out of each port
+        }
+      }
+      
+      
+      
+    }
+    
+    
+  }
   
   
   
