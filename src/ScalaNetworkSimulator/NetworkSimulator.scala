@@ -334,7 +334,42 @@ class NetworkSimulator {
         }
         else{
           //flood pdu copies out of each port
-        }
+          var incomingPort = pdu(5)
+          
+          for( counter <- 1 to pdu(6).portList.size() ){
+              
+            //only get next port 
+            if( pdu(6).portList(counter) != incomingPort ){
+              
+                //get Link's nextPort
+                var tempPort = globalLinksTable.get( pdu(6).portList(counter) )
+                pdu(5) = tempPort.portnum
+                pdu(6) = tempPort.device
+                sendPDUf( this.pdu)
+                
+            }
+          }//end of for
+        
+          
+          
+        }//end of else
+      }//end of switch
+      
+      
+      //if the current port is on a Router
+      if( pdu(6).getClass == RouterClass ){
+        
+        //get exit port
+        var tempPort: PortClass = new PortClass
+        tempPort.portnum = pdu(6).RoutingTable.get( pdu(3) ).portnum
+        tempPort.device = pdu(6)
+        
+        //get next port on this Link
+        pdu(5) = globalLinksTable.get( tempPort ).portnum
+        pdu(6) = globalLinksTable.get( tempPort ).device
+      }
+      else{
+        println("no known route...dropping packet")
       }
       
       
