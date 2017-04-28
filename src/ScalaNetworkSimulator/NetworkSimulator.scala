@@ -2,6 +2,7 @@ package ScalaNetworkSimulator
 
 import scala.language.implicitConversions
 import scala.collection.mutable
+import scala.io.StdIn.{readLine}//this allows us to read from the command line <-----used in the object 'config'
 
 class NetworkSimulator {
   
@@ -63,6 +64,16 @@ class NetworkSimulator {
       protocolRef.choose = choose
     }
   }
+  
+  //this object will 
+  object config {
+    
+     var exit: String = "go"
+     while(exit == "go"){
+         newline: String = readline()
+     }
+  }
+  
   
   // The Switch object parses the commands (brackets represent optional values. Parenthesis for variables)
   // Switch name (String)
@@ -223,17 +234,8 @@ class NetworkSimulator {
   }
   
   
-  //sudo code for methods that move data packet (called PDU):
+  //sudo code for methods that move data packet (called PDU -----> "Protocol Data Unit"):
   /*
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
    * 
    * 
    * //------------------------------------------------------------------------------------------
@@ -248,34 +250,7 @@ class NetworkSimulator {
    * myPDU.packet(6) = current device reference
    */
   
-  /*Def switchSend{
-   * 
-   * receive PDU <- PDU assigned to this device reference is the incoming port on this switch
-   *  
-   * 
-   * SwitchName.update(PDU.packet(0), PDU.packet(5) )//update the MACAddressTable
-   * 
-   * //if we already know where to send this
-   * if SwitchName.MACaddrTable.contains( PDU.packet(3) ){ //if true forward data out this port to the next device
-   * 
-   *  	PDU.packet(5) = SwitchName.MACaddrTable.get(PDU.packet(3) )
-   *    
-   * else{//if we dont know where to send this
-   * 		SwitchName.update(PDU.packet(0), PDU.packet(5) )//store this in the MACaddressTable
-   * 		
-   * 		for( counter <- 0 until SwitchName.ports.size() ){//loop over all elements int MACAdressTable
- 
-        	if(!PDU.packet(5) == SwitchName.ports(counter).num ){//make sure we do not send an ARP request out the same port we just received the PDU
-        		sendARP()//this will find out the MACaddress which corresponds to this PDU's dest IP address.
-        	}
-    		}//end loop
-   * 
-   * 		
-   * }
-   * 
-   * }//end of switchSend
-   * 
-   */
+  
   
   //this method will find matching destination mac address for the known destination IP address
   //this request can be sent from Routers or PC's
@@ -309,80 +284,99 @@ class NetworkSimulator {
     }
     
     while( pdu(1) != pdu(6).getClass().port.num   ){
-      
-      //if the current port is on a PC
-      if( pdu(6).getClass() == PCClass ){
-        pdu(5) = globalLinksTable.get( pdu(6) ).port.num //get the new port number
-        pdu(6) = globalLinksTable.get( pdu(6) ) //how we move to the next device
-        println("sending PDU out of port " + pdu(5).toString() )
-      }
-      
-      //if the current port is on a Switch
-      if( pdu(6).getClass() == SwitchClass ){
         
-        //if the incoming port # is in the table
-        if( pdu(6).MACAddressTable.contains(pdu(3)) ){
+        //if the current port is on a PC
+        if( pdu(6).getClass() == PCClass ){
+            pdu(5) = globalLinksTable.get( pdu(6) ).port.num //get the new port number
+            pdu(6) = globalLinksTable.get( pdu(6) ) //how we move to the next device
+            println("sending PDU out of port " + pdu(5).toString() )
+        }
+        
+        //if the current port is on a Switch
+        if( pdu(6).getClass() == SwitchClass ){
           
-          //get new port number
-          var tempPort: PortClass = new PortClass
-          tempPort.portnum = pdu(6).MACAddressTable.get( pdu(3)).portnum
-          tempPort.device = pdu(6)
+          //if the incoming port # is in the table
+          if( pdu(6).MACAddressTable.contains(pdu(3)) ){
+              
+              //get new port number
+              var tempPort: PortClass = new PortClass
+              tempPort.portnum = pdu(6).MACAddressTable.get( pdu(3)).portnum
+              tempPort.device = pdu(6)
+              
+              //get next port
+              pdu(5) = globalLinksTable.get( tempPort).portnum
+              pdu(6) = globalLinksTable.get( tempPort).device
+          }
+          else{
+              //flood pdu copies out of each port
+              var incomingPort = pdu(5)
+              
+              for( counter <- 1 to pdu(6).portList.size() ){
+                    
+                  //only get next port 
+                  if( pdu(6).portList(counter) != incomingPort ){
+                      
+                        //get Link's nextPort
+                        var tempPort = globalLinksTable.get( pdu(6).portList(counter) )
+                        pdu(5) = tempPort.portnum
+                        pdu(6) = tempPort.device
+                        sendPDUf( this.pdu)
+                      
+                }
+              }//end of for
           
-          //get next port
-          pdu(5) = globalLinksTable.get( tempPort).portnum
-          pdu(6) = globalLinksTable.get( tempPort).device
+            
+            
+          }//end of else
+        }//end of switch
+        
+        
+        //if the current port is on a Router
+        if( pdu(6).getClass == RouterClass ){
+          
+            //get exit port
+            var tempPort: PortClass = new PortClass
+            tempPort.portnum = pdu(6).RoutingTable.get( pdu(3) ).portnum
+            tempPort.device = pdu(6)
+            
+            //get next port on this Link
+            pdu(5) = globalLinksTable.get( tempPort ).portnum
+            pdu(6) = globalLinksTable.get( tempPort ).device
         }
         else{
-          //flood pdu copies out of each port
-          var incomingPort = pdu(5)
-          
-          for( counter <- 1 to pdu(6).portList.size() ){
-              
-            //only get next port 
-            if( pdu(6).portList(counter) != incomingPort ){
-              
-                //get Link's nextPort
-                var tempPort = globalLinksTable.get( pdu(6).portList(counter) )
-                pdu(5) = tempPort.portnum
-                pdu(6) = tempPort.device
-                sendPDUf( this.pdu)
-                
-            }
-          }//end of for
+            println("no known route...dropping packet")
+        }
         
-          
-          
-        }//end of else
-      }//end of switch
-      
-      
-      //if the current port is on a Router
-      if( pdu(6).getClass == RouterClass ){
         
-        //get exit port
-        var tempPort: PortClass = new PortClass
-        tempPort.portnum = pdu(6).RoutingTable.get( pdu(3) ).portnum
-        tempPort.device = pdu(6)
         
-        //get next port on this Link
-        pdu(5) = globalLinksTable.get( tempPort ).portnum
-        pdu(6) = globalLinksTable.get( tempPort ).device
-      }
-      else{
-        println("no known route...dropping packet")
-      }
-      
-      
-      
     }
     
+    
+  }//end sendPDU
+  
+  
+  //this object builds the network
+  /*
+   * theory: as each line of the main method is read in via the scala main method the individual objects create network
+   * devices, their properties, and the links between them.
+   * 
+   * the purpose of the config object is provide the user access to a CLI environment so that interactions with the 
+   * simulated network can happen
+   */
+  object config{
+    
+    
+    var s: String = ""
+    var input: String = ""
+    
+    while( s != "end" ){
+         s = readLine("Sim> " + input)
+         s = input
+      }
     
   }
   
   
   
   
-  
-  
-  
-}
+}//end network simulator
