@@ -362,6 +362,7 @@ class NetworkSimulator {
     
     var s: String = ""
     var input: String = ""
+    var currentDevice: AnyRef = ""
     
     /*commands the user will have available:
     *
@@ -378,7 +379,7 @@ class NetworkSimulator {
     * 5. traceroute <IP> -> this acts just like ping, but it will only print "<counter of hop> <device name> <IP of port> time=<cummulative time in seconds that it took to get here based on link times> ms"
     * when it hits a port that has an IP address. Upon failure print "device unreachable"
     * 
-    * 6. inspect ["mactable" | "arptable" | "routingtable"] <device name> -> this allows the user to see the device's specified table entries. It the table does not exits then print "Table does not exits on this type of device."
+    * 6. inspect [mactable | arptable | routingtable]	 -> this allows the user to see the device's specified table entries. It the table does not exits then print "Table does not exits on this type of device."
     * If table does exist this command will print out the entries to the command line.
     * 
     * Upon parsing failure of any of these commands -> print "Error: Command spelling or incorrect amount of arguments. Please see command help"
@@ -388,7 +389,7 @@ class NetworkSimulator {
     * */
     
     
-    //this runs the CLI
+    //this runs the CLI -> this method is only called by the main method in ScalaNetworkSimulator
     def runCLI{
       //user must select a device to start with:
       var deviceRef: Any = readLine("Select a device by name:" + input)
@@ -401,6 +402,63 @@ class NetworkSimulator {
         }
       
       println("Thank you for trying the Scala Simulator")
+    }
+    
+    
+    
+    def ping(inputIP: String){
+      //sendPD(inputIP, pingFlag)
+    }
+    
+    
+    def traceroute(inputIP: String){
+      //sendPD(inputIP, tracerouteFlag)
+    }
+    
+    
+    def send(inputIP: String){
+      //sendPD(inputIP, Data)
+    }
+    
+    
+    def inspect(inputTable: String){
+      //inspect [mactable | arptable | routingtable]
+      var deviceType = currentDevice.getClass()
+      
+      
+      if( deviceType == PCClass && inputTable == "arptable" ){
+          //print PC's arp table
+      }
+      else if( deviceType == SwitchClass && inputTable == "mactable" ){
+        //print switch's mac address table
+      }
+      else if( deviceType == RouterClass && inputTable == "mactable" ){
+        //print router's mac table
+      }
+      else if( deviceType == RouterClass && inputTable == "routingtable" ){
+        //print router's routing table
+      }
+      
+      
+      
+      else{
+          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.getClass().name)
+      }
+      
+    }
+    
+    
+    def changeDevice( inputName: String){
+      
+      if( globalDeviceList.contains(inputName) ){
+          currentDevice = globalDeviceList.get(inputName)
+          println("Current device is: " + currentDevice.getClass().name)
+
+      }
+      else{
+          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.getClass().name)
+      }
+      
     }
     
     
@@ -419,7 +477,7 @@ class NetworkSimulator {
       println()
       println("traceroute <IP>		-> Prints the path from the current device to the specified IP address.")
       println()
-      println("inspect [mactable | arptable | routingtable] <device name>		-> Prints the contents of the specified table from the specified device.")
+      println("inspect [mactable | arptable | routingtable]		-> Prints the contents of the specified table from the current device.")
     }
     
     
