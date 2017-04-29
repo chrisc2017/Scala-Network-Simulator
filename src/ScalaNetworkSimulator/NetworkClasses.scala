@@ -255,6 +255,8 @@ class IPAddress(inputIP: String, inputSubnet: String){
 class MACAddress{
   
   var macAddressValue  = genNewMAC;
+  //val MACchecker: Any = ScalaNetworkSimulator.globalMACaddressCheck
+  
   
   def getMAC{
     this.macAddressValue
@@ -262,7 +264,7 @@ class MACAddress{
   
 
   def genNewMAC{//generates a new unique mac address
-    var newMac = "CCCCCC"
+    var newMac:String = "CCCCCC"
     //val defaultOUI = "CCCCCC" <-----this is the manuufature's assigned bits (we will assume all devices to be from same manufaturer for this simulator
     //val MACchecker = new globalMACaddressCheck[MACAddress]() <-----need to fix this instanciation
     
@@ -312,11 +314,12 @@ class MACAddress{
              
         }//end of loop
     
-        if( MACchecker.contains(newMac) ){//need to fix this object call
+        if( !ScalaNetworkSimulator.globalMACaddressCheck.contains(newMac) ){//need to fix this object call
           isUniqueMAC = true
-          macAddressValue = newMac
-        }else {
-          MACchecker += newMac;//need to fix this object call
+          ScalaNetworkSimulator.globalMACaddressCheck += newMac;//need to fix this object call
+        }
+        else{
+          newMac = "CCCCCC"
         }
     } while(isUniqueMAC == false);
   }//end of function
