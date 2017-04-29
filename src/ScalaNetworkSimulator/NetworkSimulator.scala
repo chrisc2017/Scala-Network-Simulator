@@ -378,12 +378,19 @@ class NetworkSimulator {
     * 5. traceroute <IP> -> this acts just like ping, but it will only print "<counter of hop> <device name> <IP of port> time=<cummulative time in seconds that it took to get here based on link times> ms"
     * when it hits a port that has an IP address. Upon failure print "device unreachable"
     * 
+    * 6. inspect ["mactable" | "arptable" | "routingtable"] <device name> -> this allows the user to see the device's specified table entries. It the table does not exits then print "Table does not exits on this type of device."
+    * If table does exist this command will print out the entries to the command line.
+    * 
+    * Upon parsing failure of any of these commands -> print "Error: Command spelling or incorrect amount of arguments. Please see command help"
+    * 
+    * 7. Help just prints to the CLI a list of the command prototypes and a simple explination
+    * 
     * */
     
     
     
     //user must select which PC to start with from the CLI
-    var deviceRef: Any = ""
+    var deviceRef: Any = readLine("Select a device by name:" + input)
     
     
     while( s != "exit" ){
@@ -391,6 +398,8 @@ class NetworkSimulator {
          s = input.toLowerCase()//grabs only the information we wanted in the first place and stores it in var s. We only need to deal with lower case for simplicity
          
       }
+    
+    println("Thank you for trying the Scala Simulator")
     
   }
   
