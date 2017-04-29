@@ -249,13 +249,13 @@ class NetworkSimulator {
   //this request can be sent from Routers or PC's
   def requestARP(pdu: PDU){
     
-    if(pdu(6).getClass().isInstanceOf[SwitchClass]){
-      for(counter <- 1 to pdu(6).getClass().ports.size() ){
+    if(pdu.packet(6).isInstanceOf[SwitchClass]){
+      for(counter <- 1 to pdu.packet(6).asInstanceOf[SwitchClass].ports.size ){
         
-        if(pdu(6).getClass().ports.get(counter) != pdu(5) ){
+        if(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter) != pdu.packet(5).asInstanceOf[PortClass] ){
           //update PDU(5) and PDU(6) to the port# and device ref of the port on the opposite side of the Link
-          pdu(5) = globalLinksTable.get(pdu(6).getClass().ports.get(counter).num)
-          pdu(6) = globalLinksTable.get(pdu(6).getClass().ports.get(counter).device)//will need to fix this .device soon
+          pdu.packet(5) = globalLinksTable.get(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get)
+          pdu.packet(6) = globalLinksTable.get(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get).get.device//will need to fix this .device soon
           println("forwarding ARP request out of port " + counter.toString())
           requestARP(pdu)//causes recursive call
         }
@@ -263,6 +263,7 @@ class NetworkSimulator {
       }//end of loop
     }
     else {
+      // THIS won't work because pdu.6 could be switch or router or PC so we can't access name
       println("Device "+pdu(6).name + "is dropping the packet because the Dest IP address does not match its IP address)
     }
     

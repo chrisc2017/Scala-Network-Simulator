@@ -21,6 +21,7 @@ class SwitchClass(pname: String) {
         System.exit(0)
       }
       else {
+        port.device = this
         // appends the newly added port to our ports ArrayBufferz
         ports += (port.num -> port)
       }
@@ -58,6 +59,7 @@ class RouterClass(pname: String) {
         System.exit(0)
       }
       else {
+        port.device = this
         // appends the newly added port to our ports ArrayBufferz
         ports += (port.num -> port)
       }
@@ -111,6 +113,7 @@ class PCClass(pname: String) {
         System.exit(0)
       }
       else {
+        port.device = this
         // appends the newly added port to our ports ArrayBufferz
         ports += (port.num -> port)
       }
@@ -156,6 +159,7 @@ class PortClass(portNum: Int) {
   var num = portNum
   var MACAddr = "None"
   var IPAddr = "None"
+  var device: AnyRef = null
 }
 
 
