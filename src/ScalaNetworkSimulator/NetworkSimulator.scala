@@ -65,14 +65,7 @@ class NetworkSimulator {
     }
   }
   
-  //this object will 
-  object config {
-    
-     var exit: String = "go"
-     while(exit == "go"){
-         newline: String = readline()
-     }
-  }
+
   
   
   // The Switch object parses the commands (brackets represent optional values. Parenthesis for variables)
@@ -358,20 +351,45 @@ class NetworkSimulator {
   //this object builds the network
   /*
    * theory: as each line of the main method is read in via the scala main method the individual objects create network
-   * devices, their properties, and the links between them.
+   * devices, their properties, and the links between them. 
+   * 
+   * This object call is written at the end of the main method code so that it launches the CLI.
    * 
    * the purpose of the config object is provide the user access to a CLI environment so that interactions with the 
    * simulated network can happen
    */
   object config{
     
-    
     var s: String = ""
     var input: String = ""
     
-    while( s != "end" ){
-         s = readLine("Sim> " + input)
-         s = input
+    /*commands the user will have available:
+    *
+    * 1. exit -> this ends the cli and exits the simulation
+    * 
+    * 2. changeDevice <device name> -> this changes the current device referenced from one device to another.  
+    * 
+    * 3. send <IP address> <String of char>-> sends a Protocol Data Unit across the network to another IP. If the correct PC device IP receives the data that device prints the data to the CLI. Upon failure -> print device unreachable.
+    * 
+    * 4. ping <IP> -> this will send a PDU to the specified IP (any device's IP) but it will not print its path as it goes. 
+    * It will only print "xx bytes from <destination IP>: time= <number of seconds the links specify added together> ms".
+    * Upon failure print "device not reachable"
+    *
+    * 5. traceroute <IP> -> this acts just like ping, but it will only print "<counter of hop> <device name> <IP of port> time=<cummulative time in seconds that it took to get here based on link times> ms"
+    * when it hits a port that has an IP address. Upon failure print "device unreachable"
+    * 
+    * */
+    
+    
+    
+    //user must select which PC to start with from the CLI
+    var deviceRef: Any = ""
+    
+    
+    while( s != "exit" ){
+         s = readLine("Sim> " + input)//provides the user with a prompt
+         s = input.toLowerCase()//grabs only the information we wanted in the first place and stores it in var s. We only need to deal with lower case for simplicity
+         
       }
     
   }
