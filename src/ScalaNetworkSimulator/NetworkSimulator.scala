@@ -388,18 +388,42 @@ class NetworkSimulator {
     * */
     
     
+    //this runs the CLI
+    def runCLI{
+      //user must select a device to start with:
+      var deviceRef: Any = readLine("Select a device by name:" + input)
+      
+      
+      while( s != "exit" ){
+           s = readLine("Sim> " + input)//provides the user with a prompt
+           s = input.toLowerCase()//grabs only the information we wanted in the first place and stores it in var s. We only need to deal with lower case for simplicity
+           
+        }
+      
+      println("Thank you for trying the Scala Simulator")
+    }
     
-    //user must select which PC to start with from the CLI
-    var deviceRef: Any = readLine("Select a device by name:" + input)
     
     
-    while( s != "exit" ){
-         s = readLine("Sim> " + input)//provides the user with a prompt
-         s = input.toLowerCase()//grabs only the information we wanted in the first place and stores it in var s. We only need to deal with lower case for simplicity
-         
-      }
+    //prints to CLI the available commands
+    def help{
+      println("------------------------available commands------------------------")
+      println()
+      println("exit		-> Ends the simulation")
+      println()
+      println("changedevice <device name>		-> Changes to another device's CLI.")
+      println()
+      println("send <IP address> <String of char>		-> sends data specified as a String across the network to another IP.")
+      println()
+      println("ping <IP>		-> Checks the availability of an IP address.")
+      println()
+      println("traceroute <IP>		-> Prints the path from the current device to the specified IP address.")
+      println()
+      println("inspect [mactable | arptable | routingtable] <device name>		-> Prints the contents of the specified table from the specified device.")
+    }
     
-    println("Thank you for trying the Scala Simulator")
+    
+    
     
   }
   
