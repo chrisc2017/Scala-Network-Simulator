@@ -101,11 +101,17 @@ class RouterClass(pname: String) {
 
 class PCClass(pname: String) {
   var name = pname
-  var ports = new mutable.HashMap[Int, PortClass]()
+  //var ports = new mutable.HashMap[Int, PortClass]()
+  var port: PortClass //this is done to restrict each PC to one port
   var ARPTable = new mutable.HashMap[String, String]()//stores map of IP address -> mac address (allows us to need fewer arp requests as the simulation progresses)
+  
   var dafaultGateway: String = "null" //IP address of this network's router
   var subnetMask: String = "null" //subnet mask helps us determine if another PC is within the same LAn as this PC
+  var ipAddress: String  = "null"
   
+  var storage = new mutable.HashMap[String, String]()
+  
+  /*
   def addPort(port: PortClass) = {
     // Check if port already exists in our object. If yes, give error and exit. Else, add to ports
       if (ports.contains(port.num)) {
@@ -118,6 +124,11 @@ class PCClass(pname: String) {
         ports += (port.num -> port)
       }
   }
+  */
+  
+  def addPort(newPort: PortClass) ={
+    port = newPort //assign the input Port object to this PC's port varible.
+  }
   
   
   //method for updateing/learning new mac addr/port combinations <-----run everytime the switch 
@@ -129,9 +140,77 @@ class PCClass(pname: String) {
   }  
   
   //manually assign PC's subnetmask and defaultGateway
+  def assignIP(newIP: String){
+    if( !ScalaNetworkSimulator.glabalIPaddressCheck.contains(newIP))
+      ScalaNetworkSimulator.glabalIPaddressCheck.+=(newIP)
+      ipAddress = newIP //add this new ip to the globalIP address check table
+      
+  }
   
-  //add possible dns table (later option)
-}
+  def assignStorage( inputKey: String, inputValue: String){
+    storage += ( inputKey -> inputValue )
+  }
+  
+  def retrieveStorage( inputKey: String) = {
+    storage.get(inputKey)
+  }
+  
+  
+  def checkIncomingDestMac(incomingPDU: PDU){
+   
+    if(incomingPDU.packet(3) == port.MACAddr){//determines if this PDU was sent for this mac address
+      
+      //now determine the action to take based on the pdu.packet(4)
+      if( incomingPDU.packet(4) == "storeThis" ){//store what ever was sent to this device in storage hashMap
+        assignStorage( incomingPDU.packet(5).toString() , incomingPDU.packet(6).toString() )
+        //sendPDU with these values:
+        /*
+         *myPDU.packet(4) = "Acknowledged - successful"
+         *myPDU.packet(5) = "null" 
+         *myPDU.packet(6) =  "null"
+         */
+      }
+      else if(incomingPDU.packet(4) == "replyWith"){//retrieve the Value of the sent Key and then send the value back to the sending PC
+        retrieveStorage( incomingPDU.packet(5).toString() )
+        //sendPDU with these values:
+        /*
+         *myPDU.packet(4) = "Acknowledged - successful"
+         *myPDU.packet(5) = "null" 
+         *myPDU.packet(6) =  "null"
+         */
+      }
+      else if(incomingPDU.packet(4) == "ARPrequest"){
+        //sendPDU()
+        //sendPDU with these values:
+        /*
+         *myPDU.packet(4) = "ARPreply" -----> this will cause the calling device to record the source MAC address
+         *myPDU.packet(5) = "source IP address" 
+         *myPDU.packet(6) =  "source MAC address"
+         */
+      }
+      else if(incomingPDU.packet(4) == "ping"){
+        //print out the cumulative time value *2 which is stored in the incomingPDU.packet(6) = data String Value <-----*2 because this is the round trip time from the source IP to this destination IP
+        println("from (" + ipAddress + ") time= " + incomingPDU.packet(6).toString().toInt*2 +  "ms" )
+      }
+      else if(incomingPDU.packet(4) == "traceroute"){
+        //print out the cumulative hop count + 1 <-----stored in myPDU.packet(5) for ping cmd
+        print( incomingPDU.packet(4) + " ")
+        
+        //print out the device name then then this port's ip address
+        print( incomingPDU.packet(8).asInstanceOf[PCClass].name + " (" + incomingPDU.packet(8).toString() + ") " )
+      
+        //print out the cumulative time value *2 which is stored in the incomingPDU.packet(6) = data String Value <-----*2 because this is the round trip time from the source IP to this destination IP
+        println(" time= " + incomingPDU.packet(6).toString().toInt*2 +  "ms")
+      }
+        
+    }
+    
+    
+  }
+  
+  
+  
+}//end of PCClass
 
 
 
@@ -158,7 +237,7 @@ class PortClass(portNum: Int) {
   var portType: PortTypeClass = null
   var num = portNum
   var MACAddr = "None"
-  var IPAddr = "None"
+  var IPAddr: String = "None"
   var device: AnyRef = null
 }
 
@@ -171,7 +250,7 @@ class IPAddress(inputIP: String, inputSubnet: String){
   var ipAddressValue:Array[Int] = new Array[Int](4)
   var ipSubnetMask: Array[Int] = new Array[Int](4)
   
-  def inputToIPAdderess{
+  def inputToIPAdderess(input: String){
     
     var indexA = 0
     var indexB = 0
@@ -195,7 +274,7 @@ class IPAddress(inputIP: String, inputSubnet: String){
   }
   
   
-  def inputToSubnetMask{
+  def inputToSubnetMask(input: String){
     
     var indexA = 0
     var indexB = 0
@@ -225,7 +304,7 @@ class IPAddress(inputIP: String, inputSubnet: String){
     
   }
   
-  /*
+  /* 
   def toBinary(input: IPAddress) = {
     //this returns an array of 64 binary digits
     
@@ -254,16 +333,11 @@ class IPAddress(inputIP: String, inputSubnet: String){
 
 class MACAddress{
   
-  var macAddressValue  = genNewMAC;
-  //val MACchecker: Any = ScalaNetworkSimulator.globalMACaddressCheck
+  var macAddressValue: String
   
-  
-  def getMAC{
-    this.macAddressValue
-  }
   
 
-  def genNewMAC{//generates a new unique mac address
+  def generateNewMAC{//generates a new unique mac address
     var newMac:String = "CCCCCC"
     //val defaultOUI = "CCCCCC" <-----this is the manuufature's assigned bits (we will assume all devices to be from same manufaturer for this simulator
     //val MACchecker = new globalMACaddressCheck[MACAddress]() <-----need to fix this instanciation
@@ -314,9 +388,10 @@ class MACAddress{
              
         }//end of loop
     
+        newMac = "eee"
         if( !ScalaNetworkSimulator.globalMACaddressCheck.contains(newMac) ){//need to fix this object call
           isUniqueMAC = true
-          ScalaNetworkSimulator.globalMACaddressCheck += newMac;//need to fix this object call
+          ScalaNetworkSimulator.globalMACaddressCheck += newMac;
         }
         else{
           newMac = "CCCCCC"
@@ -326,21 +401,31 @@ class MACAddress{
   
   
   
+  
+  
+  
+  
 }//end of MACAddress object
+
+
+
+
+
+
+
 
 class PDU{//this class just gives us a structure to store the Data and the header information needed to send it accross networks
   
   var packet:Array[Any] = new Array[Any](7)
-  //add an 8th index for CRC <-----if time permits
-  //add a 9th index for layer 4 sequence <-----if time permits
   
   /*  
    * myPDU.packet(0) = source IP address
    * myPDU.packet(1) = destination IP address
    * myPDU.packet(2) = source MAC address
    * myPDU.packet(3) = destination MAC address
+   * myPDU.packet(4) = data instruction keyword; ex "storgeThis", "replyWith", "ARPrequest"
    * myPDU.packet(4) = data to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
-   * myPDU.packet(5) = current port #
+   * myPDU.packet(5) = current port
    * myPDU.packet(6) = current device reference
    */
  

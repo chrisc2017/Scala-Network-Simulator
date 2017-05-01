@@ -18,7 +18,8 @@ class NetworkSimulator {
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
   var globalProtocolTable: mutable.HashMap[String, RoutingProtocolClass] = new mutable.HashMap[String, RoutingProtocolClass]()
   var globalLinksTable: mutable.HashMap[PortClass, PortClass] = new mutable.HashMap[PortClass, PortClass]()
-  var globalMACaddressCheck: mutable.HashSet[MACAddress] = new mutable.HashSet[MACAddress]()
+  var globalMACaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
+  var glabalIPaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
   
   
   // var Fiber: PortTypeClass = PortTypeClass()
@@ -239,7 +240,7 @@ class NetworkSimulator {
    * myPDU.packet(2) = source MAC address
    * myPDU.packet(3) = destination MAC address
    * myPDU.packet(4) = data to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
-   * myPDU.packet(5) = current port #
+   * myPDU.packet(5) = current port 
    * myPDU.packet(6) = current device reference
    */
   
@@ -249,26 +250,39 @@ class NetworkSimulator {
   //this request can be sent from Routers or PC's
   def requestARP(pdu: PDU){
     
-    if(pdu.packet(6).isInstanceOf[SwitchClass]){
+    if( pdu.packet(6).isInstanceOf[SwitchClass] ){//if the current device the packet is on is a switch
+  
       for(counter <- 1 to pdu.packet(6).asInstanceOf[SwitchClass].ports.size ){
         
         if(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter) != pdu.packet(5).asInstanceOf[PortClass] ){
+          
           //update PDU(5) and PDU(6) to the port# and device ref of the port on the opposite side of the Link
-          pdu.packet(5) = globalLinksTable.get(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get)
-          pdu.packet(6) = globalLinksTable.get(pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get).get.device//will need to fix this .device soon
+          pdu.packet(5) = globalLinksTable.get( pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get )//set next port on link as the current port
+          pdu.packet(6) = globalLinksTable.get( pdu.packet(6).asInstanceOf[SwitchClass].ports.get(counter).get ).get.device //set next port's device as the current device
           println("forwarding ARP request out of port " + counter.toString())
-          requestARP(pdu)//causes recursive call
+          requestARP(pdu)//causes recursive call to flood all switch ports with an ARP request
         }
         //do nothing if the pdu(5) == the counter # <---- we dont want to forward ARPrequest back to the devices that sent the original ARPrequest
       }//end of loop
+    
+    }//end of dealing with switches
+    
+    
+    //if we get here in the code then we have either reached a PC or a router
+    //check if this PC's port has the IP address of the packet's destination IP
+    if( pdu.packet(5).asInstanceOf[PortClass].get.IPAddr == pdu.packet(1) ){
+          println(pdu.packet(6).asInstanceOf[PCClass].name + " successfully received the ARP request. Sending reply to "  )
     }
-    else {
-      // THIS won't work because pdu.6 could be switch or router or PC so we can't access name
-      println("Device "+pdu(6).name + "is dropping the packet because the Dest IP address does not match its IP address)
+    else{
+      println("Dropping the packet because the destination IP address does not match its IP address")
     }
     
     
-  }
+    
+  }//end of requestARP
+  
+  
+  
   
   //sudo code for sending PDU accross the network <----- will rewrite as recursive method
   def sendPDU( this.pdu: PDU){
