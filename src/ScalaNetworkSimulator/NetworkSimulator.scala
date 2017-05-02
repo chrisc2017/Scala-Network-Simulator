@@ -22,6 +22,7 @@ class NetworkSimulator {
   var glabalIPaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
   
   
+  
   // var Fiber: PortTypeClass = PortTypeClass()
   // add it to GlobalPortType hashmap with the name as the key
   
@@ -270,7 +271,7 @@ class NetworkSimulator {
     
     //if we get here in the code then we have either reached a PC or a router
     //check if this PC's port has the IP address of the packet's destination IP
-    if( pdu.packet(5).asInstanceOf[PortClass].get.IPAddr == pdu.packet(1) ){
+    if( pdu.packet(5).asInstanceOf[PortClass].IPAddr == pdu.packet(1) ){
           println(pdu.packet(6).asInstanceOf[PCClass].name + " successfully received the ARP request. Sending reply to "  )
     }
     else{
@@ -285,10 +286,10 @@ class NetworkSimulator {
   
   
   //sudo code for sending PDU accross the network <----- will rewrite as recursive method
-  def sendPDU( this.pdu: PDU){
+  def sendPDU( pdu: PDU){
     
-    if (pdu(3) == "null"){
-      pdu(3) = sendARP(PDU) 
+    if (pdu.packet(3) == "null"){
+      requestARP(pdu) 
     }
     
     while( pdu(1) != pdu(6).getClass().port.num   ){
@@ -385,7 +386,7 @@ class NetworkSimulator {
     * 
     * 2. changeDevice <device name> -> this changes the current device referenced from one device to another.  
     * 
-    * 3. send <IP address> <String of char>-> sends a Protocol Data Unit across the network to another IP. If the correct PC device IP receives the data that device prints the data to the CLI. Upon failure -> print device unreachable.
+    * 3. send <IP address> <command: storgeThis | replyWith> <String of char>-> sends a Protocol Data Unit across the network to another IP. If the correct PC device IP receives the data that device prints the data to the CLI. Upon failure -> print device unreachable.
     * 
     * 4. ping <IP> -> this will send a PDU to the specified IP (any device's IP) but it will not print its path as it goes. 
     * It will only print "xx bytes from <destination IP>: time= <number of seconds the links specify added together> ms".
@@ -407,71 +408,155 @@ class NetworkSimulator {
     //this runs the CLI -> this method is only called by the main method in ScalaNetworkSimulator
     def runCLI{
       //user must select a device to start with:
-      var deviceRef: Any = readLine("Select a device by name:" + input)
+      var deviceRef: AnyRef = null
+      var splitStringArray:Array[String] = new Array[String](4)
+      println("Welcome to Scala Network Simulator. Please choose a device to get started or type help.")
       
       
       while( s != "exit" ){
-           s = readLine("Sim> " + input)//provides the user with a prompt
-           s = input.toLowerCase()//grabs only the information we wanted in the first place and stores it in var s. We only need to deal with lower case for simplicity
+           print("> ")
+           s = readLine(input)//provides the user with a prompt
+           splitStringArray = s.split(" ") //think about error checking the number of arguments later
+           
+           if(splitStringArray(0) == "ping" ){
+             config.ping( splitStringArray(1) ) //send command will call sendPDU
+           }
+           else if(splitStringArray(0) == "traceroute" ){
+             config.traceroute( splitStringArray(2)) //send command will call sendPDU
+           }
+           else if(splitStringArray(0) == "send" ){
+             config.send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+           }
+           else if(splitStringArray(1) == "inspect" ){
+             config.inspect( splitStringArray(2) )
+           }
+           else if(splitStringArray(1) == "changeDevice" ){
+             config.changeDevice( splitStringArray(1) )
+           }
+           else if(splitStringArray(1) == "help" ){
+             config.help //is this how we run a stand alone command with no arguments?
+           }
+           else if(splitStringArray(1) == "exit" ){
+             s = "exit"
+           }
+           
+           
+           
+           
+           
            
         }
       
-      println("Thank you for trying the Scala Simulator")
+      println("Thank you for trying the Scala Network Simulator")
     }
     
     
     
     def ping(inputIP: String){
-      //sendPD(inputIP, pingFlag)
+      
+      var myPDU = new PDU()
+      myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
+      myPDU.packet(1) = inputIP
+      myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
+      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+    
+      myPDU.packet(4) = "ping"
+      myPDU.packet(5) = null
+      myPDU.packet(6) = null
+    
+      myPDU.packet(7) = currentDevice.asInstanceOf[PCClass].port
+      myPDU.packet(8) = currentDevice
+      
+      //now that we have all the PDU fields filled out we can send the PDU accross the network.
+      sendPDU(myPDU)
+
     }
     
     
     def traceroute(inputIP: String){
-      //sendPD(inputIP, tracerouteFlag)
+      var myPDU = new PDU()
+      myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
+      myPDU.packet(1) = inputIP
+      myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
+      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+    
+      myPDU.packet(4) = "traceroute"
+      myPDU.packet(5) = null
+      myPDU.packet(6) = null
+    
+      myPDU.packet(7) = currentDevice.asInstanceOf[PCClass].port
+      myPDU.packet(8) = currentDevice
+      
+      //now that we have all the PDU fields filled out we can send the PDU accross the network.
+      sendPDU(myPDU)
     }
     
     
-    def send(inputIP: String){
-      //sendPD(inputIP, Data)
+    def send(inputIP: String, inputCommand: String, inputData: String){
+      
+      var myPDU = new PDU()
+      myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
+      myPDU.packet(1) = inputIP
+      myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
+      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+    
+      myPDU.packet(5) = inputData
+      myPDU.packet(6) = null
+    
+      myPDU.packet(7) = currentDevice.asInstanceOf[PCClass].port
+      myPDU.packet(8) = currentDevice
+      
+      if(inputCommand == "storeThis"){
+        myPDU.packet(4) = "storeThis"
+        sendPDU(myPDU)
+      }
+      else if(inputCommand == "replyWith"){
+        myPDU.packet(4) = "replyWith"
+        sendPDU(myPDU)
+      }
+      else{
+        println("Mispelled command - please try again.")
+      }      
     }
     
     
     def inspect(inputTable: String){
       //inspect [mactable | arptable | routingtable]
-      var deviceType = currentDevice.getClass()
       
       
-      if( deviceType == PCClass && inputTable == "arptable" ){
-          //print PC's arp table
+      if( currentDevice.isInstanceOf[PCCLass].getClass() && inputTable == "arptable" ){
+          currentDevice.asInstanceOf[PCClass].ARPTable.toString()
       }
-      else if( deviceType == SwitchClass && inputTable == "mactable" ){
-        //print switch's mac address table
+      else if( currentDevice.isInstanceOf[SwitchCLass].getClass() && inputTable == "mactable" ){
+        currentDevice.asInstanceOf[SwitchCLass].MACaddressTable.toString()
       }
-      else if( deviceType == RouterClass && inputTable == "mactable" ){
-        //print router's mac table
+      else if( currentDevice.isInstanceOf[RouterCLass].getClass() && inputTable == "mactable" ){
+        currentDevice.asInstanceOf[RouterClass].MACaddressTable.toString()
       }
-      else if( deviceType == RouterClass && inputTable == "routingtable" ){
-        //print router's routing table
+      else if( currentDevice.isInstanceOf[RouterCLass].getClass() && inputTable == "routingtable" ){
+        currentDevice.asInstanceOf[RouterClass].RoutingTable.toString()
       }
       
       
       
       else{
-          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.getClass().name)
+          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.asInstanceOf[PCClass].name)
       }
       
     }
     
     
+    
     def changeDevice( inputName: String){
       
-      if( globalDeviceList.contains(inputName) ){
-          currentDevice = globalDeviceList.get(inputName)
-          println("Current device is: " + currentDevice.getClass().name)
-
+     
+      var newDevice: AnyRef = null
+ 
+      if( globalDeviceTable.contains(inputName) ){
+        newDevice = globalDeviceTable.get(inputName)
       }
       else{
-          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.getClass().name)
+          println("Device does not exist in simulation. Please check your spelling and try again. ")
       }
       
     }
@@ -486,7 +571,7 @@ class NetworkSimulator {
       println()
       println("changedevice <device name>		-> Changes to another device's CLI.")
       println()
-      println("send <IP address> <String of char>		-> sends data specified as a String across the network to another IP.")
+      println("send <IP address> <filename> <String of char without spaces>		-> sends data specified as a String without spaces across the network to another IP.")
       println()
       println("ping <IP>		-> Checks the availability of an IP address.")
       println()

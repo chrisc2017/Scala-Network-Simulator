@@ -27,6 +27,7 @@ object ScalaNetworkSimulator  extends NetworkSimulator{
  
 }
 
+//old indexes for PDU class
 
 
 /*  
@@ -35,13 +36,16 @@ object ScalaNetworkSimulator  extends NetworkSimulator{
    * myPDU.packet(2) = source MAC address
    * myPDU.packet(3) = destination MAC address
    * 
-   * myPDU.packet(4) = data instruction keyword; ex "storgeThis", "replyWith", "ARPrequest", to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
+   * myPDU.packet(4) = data instruction keyword; ex "storeThis", "replyWith", "ARPrequest", to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
    * myPDU.packet(5) = data String Key
    * myPDU.packet(6) = data String Value
    * 
    * myPDU.packet(7) = current port
    * myPDU.packet(8) = current device reference
    */
+
+
+//storgeThis myfile "this is my new document"
 
 
 

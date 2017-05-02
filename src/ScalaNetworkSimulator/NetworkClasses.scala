@@ -42,6 +42,9 @@ class SwitchClass(pname: String) {
 class RoutingProtocolClass(name: String) {
   var learn = ""
   var choose = ""
+  
+  //cost -> how many hop
+  
 }
 
 class RouterClass(pname: String) {
@@ -145,6 +148,7 @@ class PCClass(pname: String) {
       ScalaNetworkSimulator.glabalIPaddressCheck.+=(newIP)
       ipAddress = newIP //add this new ip to the globalIP address check table
       
+     
   }
   
   def assignStorage( inputKey: String, inputValue: String){
@@ -388,7 +392,7 @@ class MACAddress{
              
         }//end of loop
     
-        newMac = "eee"
+        
         if( !ScalaNetworkSimulator.globalMACaddressCheck.contains(newMac) ){//need to fix this object call
           isUniqueMAC = true
           ScalaNetworkSimulator.globalMACaddressCheck += newMac;
@@ -416,17 +420,22 @@ class MACAddress{
 
 class PDU{//this class just gives us a structure to store the Data and the header information needed to send it accross networks
   
-  var packet:Array[Any] = new Array[Any](7)
+  var packet:Array[Any] = new Array[Any](9)
+  
+  
   
   /*  
    * myPDU.packet(0) = source IP address
    * myPDU.packet(1) = destination IP address
    * myPDU.packet(2) = source MAC address
    * myPDU.packet(3) = destination MAC address
-   * myPDU.packet(4) = data instruction keyword; ex "storgeThis", "replyWith", "ARPrequest"
-   * myPDU.packet(4) = data to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
-   * myPDU.packet(5) = current port
-   * myPDU.packet(6) = current device reference
+   * 
+   * myPDU.packet(4) = data instruction keyword; ex "storgeThis", "replyWith", "ARPrequest", to be sent (for ping set data to "ping", for traceroute set data to "traceroute")
+   * myPDU.packet(5) = data String Key
+   * myPDU.packet(6) = data String Value
+   * 
+   * myPDU.packet(7) = current port
+   * myPDU.packet(8) = current device reference
    */
  
 }//end of PDU object
