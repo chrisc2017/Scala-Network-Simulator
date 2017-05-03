@@ -195,9 +195,9 @@ class NetworkSimulator {
     
   }
   
-  object Default {
+  object default {
     
-    def Gateway(IPAddr: String) = {
+    def gateway(IPAddr: String) = {
       if (deviceRef.isInstanceOf[PCClass]) {
         deviceRef.asInstanceOf[PCClass].defaultGateway = IPAddr
       }

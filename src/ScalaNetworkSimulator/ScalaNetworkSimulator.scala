@@ -25,15 +25,19 @@ object ScalaNetworkSimulator  extends NetworkSimulator{
       
     PC name "Bob's PC";
       port num 1 uses "Fiber" IPAddress "192.168.0.36";
+      default gateway "";
     
     PC name "Joe's PC";
-      port num 2 uses "Fiber" IPAddress "192.168.0.21";;
+      port num 2 uses "Fiber" IPAddress "192.168.0.21";
+      default gateway "";
       
     PC name "Smith's PC";
       port num 13 uses "Fiber" IPAddress "44.44.44.8";
+      default gateway "";
     
     PC name "Guest's PC";
       port num 14 uses "Fiber" IPAddress "44.44.44.3";
+      default gateway "";
       
     Links;
       connect deviceA "sw1" portA 3 deviceB "Bob's PC" portB 1;
