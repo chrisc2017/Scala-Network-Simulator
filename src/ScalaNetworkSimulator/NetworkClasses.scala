@@ -247,7 +247,7 @@ class IPAddress(inputIP: String){
   
   //we are expecting inputIP like "192.168.12.19"
   
-  var ipAddressValue: String
+  var ipAddressValue: String = ""
   
   
   def sameSubnetTest(inputIPA: IPAddress, inputIPB: IPAddress, inputSubNetMask: IPAddress): Boolean = {
@@ -257,46 +257,80 @@ class IPAddress(inputIP: String){
     var splitB: Array[String] = inputIPB.ipAddressValue.split(".")
     var splitMask: Array[String] = inputSubNetMask.ipAddressValue.split(".")
     
-    var bitsA: Array[Int] = new Array[Int](8)
-    var bitsB: Array[Int] = new Array[Int](8)
-    var bitsMask: Array[Int] = new Array[Int](8)
+    var bitsA: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
+    var bitsB: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
+    var bitsMask: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
+    var temp: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
     
-    bitsA = toBitArray( splitA(0) )
-    bitsA += toBitArray( splitA(1) )
-    bitsA += toBitArray( splitA(2) )
-    bitsA += toBitArray( splitA(3) )
+    var ansA: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
+    var ansB: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
     
-    bitsB = toBitArray( splitB(0) )
-    bitsB += toBitArray( splitB(1) )
-    bitsB += toBitArray( splitB(2) )
-    bitsB += toBitArray( splitB(3) )
     
-    bitsMask = toBitArray( splitMask(0) )
-    bitsMask += toBitArray( splitMask(1) )
-    bitsMask += toBitArray( splitMask(2) )
-    bitsMask += toBitArray( splitMask(3) )
+    var count: Int = 0
+    
+    //everything for bitsA
+    for(i <- 0 until 3){
+      temp = toBitArray( splitA(i) )
+      
+      for(j <- 0 until 7){
+        bitsA(j + count) += temp(j)
+      }
+      
+      count += 8
+    }
+    
    
-    var answerA: Array[Int] = new Array[Int](32)
-    var answerB: Array[Int] = new Array[Int](32)    
+    //everything for bitsB
+    for(i <- 0 until 3){
+      temp = toBitArray( splitB(i) )
+      
+      for(j <- 0 until 7){
+        bitsB(j + count) += temp(j)
+      }
+      
+      count += 8
+    }
+    
+    //everything for bitsMask
+    for(i <- 0 until 3){
+      temp = toBitArray( splitMask(i) )
+      
+      for(j <- 0 until 7){
+        bitsMask(j + count) += temp(j)
+      }
+      
+      count += 8
+    }
 
     
     for( index <- 0 until 31){
       if(bitsA(index) == 1 && bitsMask(index) == 1){
-        answerA(index) = 1
+        ansA(index) = 1
       }
       else{
-        answerA(index) = 0
+        ansA(index) = 0
       }
       
       if(bitsB(index) == 1 && bitsMask(index) == 1){
-        answerB(index) = 1
+        ansB(index) = 1
       }
       else{
-        answerB(index) = 0
+        ansB(index) = 0
       }
     }
     
-    if( answerA.toString() == answerB.toString() )
+    var sameSubnet: Boolean = true
+    
+    for( index <- 0 until 31){
+      if(ansA(index) != ansB(index) ){
+        sameSubnet = false
+      }
+      
+      
+    }
+    
+    
+    if( sameSubnet == true )
       return true
     else
       return false
@@ -306,68 +340,68 @@ class IPAddress(inputIP: String){
   
   
   
-  def toBitArray(inputString: String): Array[Int] = {
+  def toBitArray(inputString: String): mutable.ArrayBuffer[Int] = {
     
-    var bitArray: Array[Int] = new Array[Int](8)
+    var bitArray: mutable.ArrayBuffer[Int] = new mutable.ArrayBuffer[Int]()
     var num: Int = inputString.toInt
     
     if( (num -128) >= 0 ){ //128
-      bitArray(0) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(0) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 64) >= 0 ){ //64
-      bitArray(1) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(1) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 32) >= 0 ){ //32
-      bitArray(2) = 1
+       bitArray.+=(1)
     }
     else{
-      bitArray(2) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 16) >= 0 ){ //16
-      bitArray(3) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(3) = 0
+      bitArray.+=(0)
     }
     
     if( (num -8) >= 0 ){ //8
-      bitArray(4) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(4) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 4) >= 0 ){ //4
-      bitArray(5) = 1
+       bitArray.+=(1)
     }
     else{
-      bitArray(5) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 2) >= 0 ){ //2
-      bitArray(6) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(6) = 0
+      bitArray.+=(0)
     }
     
     if( (num - 1) >= 0 ){ //1
-      bitArray(7) = 1
+      bitArray.+=(1)
     }
     else{
-      bitArray(7) = 0
+      bitArray.+=(0)
     }
     
-    
+    return bitArray
     
   }
   
