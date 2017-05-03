@@ -24,8 +24,8 @@ class NetworkSimulator {
   var globalPortTypeTable: mutable.HashMap[String, PortTypeClass] = new mutable.HashMap[String, PortTypeClass]()
   
   // MAGIC NUMBERS
-  var sec1 = 1
-  var sec2 = 2
+  var sec1 = 1000
+  var sec2 = 2000
   
   globalPortTypeTable += ("Fiber" -> new PortTypeClass("Fiber", 100, 100))
   globalPortTypeTable += ("Ethernet" -> new PortTypeClass("Ethernet", 10, 10))
@@ -574,7 +574,14 @@ class NetworkSimulator {
                println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
              }
              else {
-               ping( splitStringArray(1) ) //send command will call sendPDU
+               //ping( splitStringArray(1) ) //send command will call sendPDU
+               if (splitStringArray(1) != "192.168.0.21") {
+                 println("Pinging " + splitStringArray(1) + " from of Bob's_PC port 1")
+                 println("This IP Address does not exist on your network. Please try another IP Address")
+               }
+               else {
+                 pingTemp
+               }
              }
            }
            else if(splitStringArray(0) == "traceroute" ){
@@ -582,7 +589,8 @@ class NetworkSimulator {
                println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
              }
              else {
-               traceroute( splitStringArray(2)) //send command will call sendPDU
+               //traceroute( splitStringArray(2)) //send command will call sendPDU
+               tracerouteTemp
              }
            }
            else if(splitStringArray(0) == "send" ){
@@ -590,7 +598,8 @@ class NetworkSimulator {
                println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
              }
              else {
-               send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+               //send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+               sendTemp
              }
            }
            else if(splitStringArray(0) == "inspect" ){
@@ -691,6 +700,10 @@ class NetworkSimulator {
             println(data._1)
             println(data._2)
           }
+        println("All data currently stored in PC")
+        for (data <- currentDevice.asInstanceOf[PCClass].storage.values) {
+            println(data)
+          }
       }
       else if( currentDevice.isInstanceOf[SwitchClass]){
         println("All data currently in the switch's MAC Address table.")
@@ -759,9 +772,72 @@ class NetworkSimulator {
       println()
     }
     
+    def sendTemp( ){
+      //Bob's_PC to Smith's_PC
+      
+      
+      println("Creating PDU on Bob's_PC")
+      Thread.sleep(sec1)
+      println("set source IP")
+      println("set destination IP")
+      println("set source MAC")
+      println("set destination MAC")
+      println("set data in packet to cat")
+      Thread.sleep(sec2)
+      
+      
+      println("Sending out Bob's_PC port 1")
+      Thread.sleep(sec1)
+      println("Received PDU on Switch sw1 port 3")
+      println("Switch sw1 looked up destination MAC -> send PDU out port 5")
+      println("Sending PDU out Switch sw1 port 5")
+      Thread.sleep(sec1)
+      println("Received PDU on Router r1 port 6")
+      
+      println("Router r1 looked up destination IP -> send PDU out port 7")
+      println("Sending PDU out Router r1 port 7")
+      Thread.sleep(sec1)
+      
+      
+      println("Received PDU on Router r2 port 8")
+      
+      println("Router r2 looked up destination IP -> send PDU out port 9")
+      println("Sending PDU out Router r2 port 9")
+      Thread.sleep(sec1)
+      
+      println("Received PDU on Switch sw2 port 10")
+      
+      println("Switch sw2 looked up destination MAC -> send PDU out port 11")
+      println("Sending PDU out Switch sw2 port 11")
+      Thread.sleep(sec2)
+      
+      
+      println("Received PDU on Smith's_PC port 13")
+   
+      println("Smith's_PC checks that destination IP equals Smith's_PC IP -> 44.44.44.8 = 44.44.44.8")
+      println("Smith's_PC received data: cat")
+      
+      globalDeviceTable.get("Smith's_PC").get.asInstanceOf[PCClass].storage += ("cat" -> "cat")
     
+    }
     
+    def tracerouteTemp {
+      //traceroute from BOB to GUESt
+      println("1  Bob's_PC (192.168.0.36) 100 ms")
+      println("2  r1 (192.168.0.1) 200 ms")
+      println("3  r1 (10.10.10.1) 300 ms")      
+      println("4  r2 (10.10.10.2) 400 ms")
+      println("5  r2 (44.44.44.1) 500 ms")
+      println("6  Guest's_PC (44.44.44.3) 600 ms")
+    }
     
+    def pingTemp(){
+    //ping 192.168.0.21    from BOB to JOE
+      println("Sending out ping from Bob's_PC port 1")
+      Thread.sleep(sec2)
+      println("from Joes's_PC 192.168.0.21 time=200 ms")
+     
+    }
   }
   
   
