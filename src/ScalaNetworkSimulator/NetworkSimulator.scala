@@ -556,6 +556,12 @@ class NetworkSimulator {
            if (currentDevice.isInstanceOf[PCClass]) {
              print(currentDevice.asInstanceOf[PCClass].name)
            }
+           else if (currentDevice.isInstanceOf[RouterClass]) {
+             print(currentDevice.asInstanceOf[RouterClass].name)
+           }
+           else if (currentDevice.isInstanceOf[SwitchClass]) {
+             print(currentDevice.asInstanceOf[SwitchClass].name)
+           }
            else {
              print("Admin")
            }
@@ -573,7 +579,7 @@ class NetworkSimulator {
              send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
            }
            else if(splitStringArray(0) == "inspect" ){
-             //inspect( splitStringArray(2) )
+             inspect
            }
            else if(splitStringArray(0) == "changeDevice" ){
              changeDevice( splitStringArray(1) )
@@ -659,39 +665,54 @@ class NetworkSimulator {
       }      
     }
     
-    /*
-    def inspect(inputTable: String){
+    
+    def inspect{
       //inspect [mactable | arptable | routingtable]
       
       
-      if( currentDevice.isInstanceOf[PCCLass].getClass() && inputTable == "arptable" ){
-          currentDevice.asInstanceOf[PCClass].ARPTable.toString()
+      if( currentDevice.isInstanceOf[PCClass]){
+          for (data <- currentDevice.asInstanceOf[PCClass].ARPTable) {
+            println(data._1)
+            println(data._2)
+          }
       }
-      else if( currentDevice.isInstanceOf[SwitchCLass].getClass() && inputTable == "mactable" ){
-        currentDevice.asInstanceOf[SwitchCLass].MACaddressTable.toString()
+      else if( currentDevice.isInstanceOf[SwitchClass]){
+        for (data <- currentDevice.asInstanceOf[SwitchClass].MACaddrTable) {
+          println(data._1)
+          println(data._2)
+        }
       }
-      else if( currentDevice.isInstanceOf[RouterCLass].getClass() && inputTable == "mactable" ){
-        currentDevice.asInstanceOf[RouterClass].MACaddressTable.toString()
+      else if( currentDevice.isInstanceOf[RouterClass]){
+        for (data <- currentDevice.asInstanceOf[RouterClass].ARPTable) {
+          println(data._1)
+          println(data._2)
+        }
+        for (data <- currentDevice.asInstanceOf[RouterClass].RoutingTable) {
+          println(data._1)
+          println(data._2)
+        }
       }
-      else if( currentDevice.isInstanceOf[RouterCLass].getClass() && inputTable == "routingtable" ){
-        currentDevice.asInstanceOf[RouterClass].RoutingTable.toString()
-      }
-      
-      
-      
       else{
-          println("Device does not exist in simulation. Please check your spelling and try again. Current device is: " + currentDevice.asInstanceOf[PCClass].name)
+          println("You are currently an Admin. Please change to a device using the keyword changeDevice <device name>")
       }
       
     }
-    */
+    
     
     
     
     def changeDevice( inputName: String){
       if( globalDeviceTable.contains(inputName) ){
         currentDevice = globalDeviceTable.get(inputName).get
-        println("Found " + currentDevice.asInstanceOf[PCClass].name + ". Switching to PC.")
+        if (currentDevice.isInstanceOf[PCClass]) {
+          println("Found " + currentDevice.asInstanceOf[PCClass].devType + " " + currentDevice.asInstanceOf[PCClass].name + ". Switching to current device.")
+        }
+        else if (currentDevice.isInstanceOf[RouterClass]) {
+          println("Found " + currentDevice.asInstanceOf[RouterClass].devType + " " + currentDevice.asInstanceOf[RouterClass].name + ". Switching to current device.")
+        }
+        else {
+          println("Found " + currentDevice.asInstanceOf[SwitchClass].devType + " " + currentDevice.asInstanceOf[SwitchClass].name + ". Switching to current device.")
+        }
       }
       else{
           println("Device does not exist in simulation. Please check your spelling and try again. ")
