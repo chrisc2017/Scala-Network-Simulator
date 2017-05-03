@@ -10,7 +10,9 @@ class NetworkClasses {
 
 class SwitchClass(pname: String) {
   var name = pname
+  var devType = "Switch"
   var ports = new mutable.HashMap[Int, PortClass]()
+  var portReceived = -1
   var MACaddrTable = new mutable.HashMap[String, PortClass]()
   
   
@@ -49,10 +51,13 @@ class RoutingProtocolClass(name: String) {
 
 class RouterClass(pname: String) {
   var name = pname
+  var devType = "Router"
   var ports = new mutable.HashMap[Int, PortClass]()
+  var portReceived = -1
+  var portSent = -1
   var protocol: RoutingProtocolClass = null
   var ARPTable = new mutable.HashMap[String, String]()//stores map of IP address -> mac address (allows us to need fewer arp requests as the simulation progresses)
-  var RoutingTable = new mutable.HashMap[Int, String]()// stores map of port# -> IP address (allows us to send data out the correct port)
+  var RoutingTable = new mutable.HashMap[String, mutable.HashSet[PortClass]]()// stores map of port# -> IP address (allows us to send data out the correct port)
 
 
   def addPort(port: PortClass) = {
@@ -66,12 +71,13 @@ class RouterClass(pname: String) {
         // appends the newly added port to our ports ArrayBufferz
         ports += (port.num -> port)
       }
+  }
       
   //learn mac address/port combinations
   //method for updateing/learning new mac addr/port combinations <-----run everytime the switch 
   def update(inputIP: String, inputMAC: String){
     
-    if(!ARPTable.contains(inputMAC) ) {
+    if(!ARPTable.contains(inputMAC)) {
       ARPTable += (inputIP -> inputMAC)//add the new entry to the table
     }
   }    
@@ -79,8 +85,11 @@ class RouterClass(pname: String) {
    //learn directly connected routes after config phase, but before simulation start
   def learnDirectlyConnectedRoutes{
     
-    for( counter <- 0 until ports.size){
-      RoutingTable += ( ports(counter).num -> ports(counter).IPAddr)
+    for (port <- ports.values){
+      println("Router " + this.name + " has learned about port " + port.num + " with IP Address " + port.IPAddr)
+      val set = new mutable.HashSet()
+      set += port
+      RoutingTable += ( port.IPAddr -> port)
     }//end loop
     
   }
@@ -97,15 +106,16 @@ class RouterClass(pname: String) {
       
       
       
-  }
+  
 }
 
 
 
 class PCClass(pname: String) {
   var name = pname
-  //var ports = new mutable.HashMap[Int, PortClass]()
-  var port: PortClass //this is done to restrict each PC to one port
+  var devType = "PC"
+  var port: PortClass = null //this is done to restrict each PC to one port
+  var portReceived = -1
   var ARPTable = new mutable.HashMap[String, String]()//stores map of IP address -> mac address (allows us to need fewer arp requests as the simulation progresses)
   
   var dafaultGateway: String = "null" //IP address of this network's router
@@ -114,22 +124,7 @@ class PCClass(pname: String) {
   
   var storage = new mutable.HashMap[String, String]()
   
-  /*
-  def addPort(port: PortClass) = {
-    // Check if port already exists in our object. If yes, give error and exit. Else, add to ports
-      if (ports.contains(port.num)) {
-        println("You have already defined a port at port" + port.num + ".\n Please rename your port numbers.")
-        System.exit(0)
-      }
-      else {
-        port.device = this
-        // appends the newly added port to our ports ArrayBufferz
-        ports += (port.num -> port)
-      }
-  }
-  */
-  
-  def addPort(newPort: PortClass) ={
+  def addPort(newPort: PortClass) {
     port = newPort //assign the input Port object to this PC's port varible.
   }
   
@@ -337,7 +332,7 @@ class IPAddress(inputIP: String, inputSubnet: String){
 
 class MACAddress{
   
-  var macAddressValue: String
+  var macAddressValue: String = ""
   
   
 

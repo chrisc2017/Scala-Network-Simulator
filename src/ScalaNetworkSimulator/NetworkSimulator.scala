@@ -11,6 +11,7 @@ class NetworkSimulator {
   var deviceRef: AnyRef = null
   var protocolRef: RoutingProtocolClass = null
   var linkRef: LinkClass = null
+  var routerRef: RouterClass = null
   
   
   
@@ -20,11 +21,11 @@ class NetworkSimulator {
   var globalLinksTable: mutable.HashMap[PortClass, PortClass] = new mutable.HashMap[PortClass, PortClass]()
   var globalMACaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
   var glabalIPaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
+  var globalRouterList: mutable.ArrayBuffer[RouterClass] = new mutable.ArrayBuffer[RouterClass]()
+  var globalPortTypeTable: mutable.HashMap[String, PortTypeClass] = new mutable.HashMap[String, PortTypeClass]()
   
-  
-  
-  // var Fiber: PortTypeClass = PortTypeClass()
-  // add it to GlobalPortType hashmap with the name as the key
+  globalPortTypeTable += ("Fiber" -> new PortTypeClass("Fiber", 100, 100))
+  globalPortTypeTable += ("Ethernet" -> new PortTypeClass("Ethernet", 10, 10))
   
   // The RoutingProtocol object parses the commands (brackets represent optional values. Parenthesis for variables)
   // RoutingProtocol name (String)
@@ -133,6 +134,7 @@ class NetworkSimulator {
       }
       else {
         globalDeviceTable += (name -> deviceRef)
+        globalRouterList += device
       }
     }
     
@@ -168,7 +170,7 @@ class NetworkSimulator {
       // The reason we invoke a method in this instance is because we know that SwitchClass, RouterClass
       //   and PCClass all have the method addPort.
       deviceRef.getClass().getMethod("addPort", classOf[PortClass]).invoke(deviceRef, port)
-      
+      port.device = deviceRef
       // sets portRef to current PortClass we created
       portRef = port
       
@@ -177,8 +179,7 @@ class NetworkSimulator {
     
     def uses(portType: String): this.type = {
       //All we have to do is set the PortType but we need to instantiate Fiber, Ethernet, etc first.
-      //portRef.portType = classOf(portType)
-      
+      portRef.portType = globalPortTypeTable.get(portType).get
       return this
     }
     
@@ -216,14 +217,51 @@ class NetworkSimulator {
     }
     
     def portA(num: Int): this.type = {
+      
+      if (linkRef.deviceA.isInstanceOf[SwitchClass]) {
+        linkRef.portA = linkRef.deviceA.asInstanceOf[SwitchClass].ports.getOrElse(num, sys.error("Device A does not have port number " + num.toString + "."))
+      }
+      else if  (linkRef.deviceA.isInstanceOf[RouterClass]) {
+        linkRef.portA = linkRef.deviceA.asInstanceOf[RouterClass].ports.getOrElse(num, sys.error("Device A does not have port number " + num.toString + "."))
+      }
+      else {
+        if (linkRef.deviceA.asInstanceOf[PCClass].port.num != num) {
+          println("Device A does not have port number " + num.toString + ".")
+          sys.exit(1)
+        }
+        linkRef.portA = linkRef.deviceA.asInstanceOf[PCClass].port
+      }
       return this
     }
     
     def deviceB(name: String): this.type = {
+      linkRef.deviceB = globalDeviceTable.getOrElse(name, sys.error("Device B (named: " + name + ") does not exist. Please change the name of deviceA"))
       return this
     }
     
     def portB(num: Int): this.type = {
+      
+      if (linkRef.deviceB.isInstanceOf[SwitchClass]) {
+        linkRef.portB = linkRef.deviceB.asInstanceOf[SwitchClass].ports.getOrElse(num, sys.error("Device A does not have port number " + num.toString + "."))
+      }
+      else if  (linkRef.deviceB.isInstanceOf[RouterClass]) {
+        linkRef.portB = linkRef.deviceB.asInstanceOf[RouterClass].ports.getOrElse(num, sys.error("Device A does not have port number " + num.toString + "."))
+      }
+      else {
+        if (linkRef.deviceB.asInstanceOf[PCClass].port.num != num) {
+          println("Device A does not have port number " + num.toString + ".")
+          sys.exit(1)
+        }
+        linkRef.portB = linkRef.deviceB.asInstanceOf[PCClass].port
+      }
+      
+      if (linkRef.portA.portType != linkRef.portB.portType) {
+        println("You cannot connect two ports that are different types. Please modify your configuration.")
+          sys.exit(1)
+      }
+      
+      globalLinksTable += (linkRef.portA -> linkRef.portB)
+      globalLinksTable += (linkRef.portB -> linkRef.portA)
       return this
     }
   }
@@ -284,7 +322,7 @@ class NetworkSimulator {
   
   
   
-  
+  /*
   //sudo code for sending PDU accross the network <----- will rewrite as recursive method
   def sendPDU( pdu: PDU){
     
@@ -361,7 +399,7 @@ class NetworkSimulator {
     }
     
     
-  }//end sendPDU
+  }//end sendPDU*/
   
   
   //this object builds the network
@@ -374,7 +412,7 @@ class NetworkSimulator {
    * the purpose of the config object is provide the user access to a CLI environment so that interactions with the 
    * simulated network can happen
    */
-  object config{
+  object Config{
     
     var s: String = ""
     var input: String = ""
@@ -404,15 +442,78 @@ class NetworkSimulator {
     * 
     * */
     
+    // Entry point to our simulation
+    def Network() = {
+      runCLI
+    }
     
+    def routerLearn(port: PortClass){
+      // Gets the port from the opposite end of our port
+      var oppPort: PortClass = globalLinksTable.get(port).get
+      if (oppPort.device.isInstanceOf[SwitchClass]) {
+        var device = oppPort.device.asInstanceOf[SwitchClass]
+        device.portReceived = oppPort.num
+        println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Switches just need to forward the packets. Sending packet out of the rest of it's ports.")
+        for (port <- device.ports.values) {
+          if (port.num != device.portReceived) {
+            
+            routerLearn(port)
+          }
+        }
+      }
+      else if (oppPort.device.isInstanceOf[RouterClass]) {
+        var device = oppPort.device.asInstanceOf[RouterClass]
+        device.portReceived = oppPort.num
+        println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Router will send it's information it currently has.")
+        for (route <- device.RoutingTable) {
+          if (!routerRef.RoutingTable.contains(route._1)) {
+            routerRef.RoutingTable += route
+          }
+        }
+        
+        for (port <- device.ports.values) {
+          if (port.num != device.portReceived) {
+            routerLearn(port)
+          }
+        }
+      }
+      else {
+        var device = oppPort.device.asInstanceOf[PCClass]
+        device.portReceived = oppPort.num
+        println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". PCs will drop the packets because they provide no information.")
+      }
+    }
     //this runs the CLI -> this method is only called by the main method in ScalaNetworkSimulator
     def runCLI{
       //user must select a device to start with:
       var deviceRef: AnyRef = null
       var splitStringArray:Array[String] = new Array[String](4)
+      // Learning phase
+      // This is when router's will try to learn information about the device in the network.
+      println("System booted up. Devices are powering on...")
+      for (router <- globalRouterList) {
+        println("Router " + router.name + " booted up.") 
+        router.learnDirectlyConnectedRoutes
+      }
+      
+      for (router <- globalRouterList) {
+        println("Router " + router.name + " has initiated learning protocol.")
+        
+        routerRef = router
+        
+        println("\n\nLearning phase for router " + router.name + " beginning.")
+        //Thread.sleep(500) maybe put a thread.sleep after each print statement to slow down runtime?
+        println("\n\nSending packets out of all ports\n\n")
+        for (port <- router.ports.values) {
+          println("\nSending packet out of port " + port.num.toString + ".")
+          router.portSent = port.num
+          routerLearn(port) 
+        }
+      }
+      
       println("Welcome to Scala Network Simulator. Please choose a device to get started or type help.")
       
-      
+      /*
       while( s != "exit" ){
            print("> ")
            s = readLine(input)//provides the user with a prompt
@@ -439,19 +540,14 @@ class NetworkSimulator {
            else if(splitStringArray(1) == "exit" ){
              s = "exit"
            }
-           
-           
-           
-           
-           
-           
-        }
+            
+        } */
       
       println("Thank you for trying the Scala Network Simulator")
     }
     
     
-    
+    /*
     def ping(inputIP: String){
       
       var myPDU = new PDU()
@@ -545,7 +641,7 @@ class NetworkSimulator {
       
     }
     
-    
+    */
     
     def changeDevice( inputName: String){
       
