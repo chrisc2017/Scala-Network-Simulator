@@ -609,7 +609,7 @@ class NetworkSimulator {
       myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
       myPDU.packet(1) = inputIP
       myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
-      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP).get
     
       myPDU.packet(4) = "traceroute"
       myPDU.packet(5) = null
