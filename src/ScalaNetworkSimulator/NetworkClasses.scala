@@ -306,7 +306,7 @@ class IPAddress(inputIP: String){
   
   
   
-  def toBitArray(inputString: String): Array[Int] {
+  def toBitArray(inputString: String): Array[Int] = {
     
     var bitArray: Array[Int] = new Array[Int](8)
     var num: Int = inputString.toInt
@@ -319,52 +319,52 @@ class IPAddress(inputIP: String){
     }
     
     if( (num - 64) >= 0 ){ //64
-      bitArray(0) = 1
+      bitArray(1) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(1) = 0
     }
     
     if( (num - 32) >= 0 ){ //32
-      bitArray(0) = 1
+      bitArray(2) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(2) = 0
     }
     
     if( (num - 16) >= 0 ){ //16
-      bitArray(0) = 1
+      bitArray(3) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(3) = 0
     }
     
     if( (num -8) >= 0 ){ //8
-      bitArray(0) = 1
+      bitArray(4) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(4) = 0
     }
     
     if( (num - 4) >= 0 ){ //4
-      bitArray(0) = 1
+      bitArray(5) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(5) = 0
     }
     
     if( (num - 2) >= 0 ){ //2
-      bitArray(0) = 1
+      bitArray(6) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(6) = 0
     }
     
     if( (num - 1) >= 0 ){ //1
-      bitArray(0) = 1
+      bitArray(7) = 1
     }
     else{
-      bitArray(0) = 0
+      bitArray(7) = 0
     }
     
     
