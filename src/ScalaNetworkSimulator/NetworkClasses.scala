@@ -261,19 +261,39 @@ class IPAddress(inputIP: String){
     var bitsB: Array[Int] = new Array[Int](8)
     var bitsMask: Array[Int] = new Array[Int](8)
     
+    bitsA = toBitArray( splitA(0) )
+    bitsA += toBitArray( splitA(1) )
+    bitsA += toBitArray( splitA(2) )
+    bitsA += toBitArray( splitA(3) )
+    
+    bitsB = toBitArray( splitB(0) )
+    bitsB += toBitArray( splitB(1) )
+    bitsB += toBitArray( splitB(2) )
+    bitsB += toBitArray( splitB(3) )
+    
     bitsMask = toBitArray( splitMask(0) )
+    bitsMask += toBitArray( splitMask(1) )
+    bitsMask += toBitArray( splitMask(2) )
+    bitsMask += toBitArray( splitMask(3) )
+   
+    var answerA: Array[Int] = new Array[Int](32)
+    var answerB: Array[Int] = new Array[Int](32)    
+
     
-    var i: Int = 0
-    var j: Int = 7
-    
-    for( indexY <- 1 until 4){//loop through each of the four octets
-      
-      for( indexZ <- i until j){ //loops through each bit in the octet
-         bitsA(i) = 
+    for( index <- 0 until 31){
+      if(bitsA(index) == 1 && bitsMask(index) == 1){
+        answerA(index) = 1
       }
-      i += 8
-      j += 8
+      else{
+        answerA(index) = 0
+      }
       
+      if(bitsB(index) == 1 && bitsMask(index) == 1){
+        answerB(index) = 1
+      }
+      else{
+        answerB(index) = 0
+      }
     }
     
     
