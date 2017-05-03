@@ -12,9 +12,7 @@ class NetworkSimulator {
   var protocolRef: RoutingProtocolClass = null
   var linkRef: LinkClass = null
   var routerRef: RouterClass = null
-  
-  
-  
+
   // This table holds all the devices (Swithces,using their name as the key 
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
   var globalProtocolTable: mutable.HashMap[String, RoutingProtocolClass] = new mutable.HashMap[String, RoutingProtocolClass]()
@@ -23,6 +21,10 @@ class NetworkSimulator {
   var glabalIPaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
   var globalRouterList: mutable.ArrayBuffer[RouterClass] = new mutable.ArrayBuffer[RouterClass]()
   var globalPortTypeTable: mutable.HashMap[String, PortTypeClass] = new mutable.HashMap[String, PortTypeClass]()
+  
+  // MAGIC NUMBERS
+  var sec1 = 1000
+  var sec2 = 2000
   
   globalPortTypeTable += ("Fiber" -> new PortTypeClass("Fiber", 100, 100))
   globalPortTypeTable += ("Ethernet" -> new PortTypeClass("Ethernet", 10, 10))
@@ -459,6 +461,7 @@ class NetworkSimulator {
     
     def routerLearn(port: PortClass){
       // Gets the port from the opposite end of our port
+      Thread.sleep(sec1)
       var oppPort: PortClass = globalLinksTable.get(port).get
       if (oppPort.device.isInstanceOf[SwitchClass]) {
         
@@ -467,9 +470,11 @@ class NetworkSimulator {
         var device = oppPort.device.asInstanceOf[SwitchClass]
         device.portReceived = oppPort.num
         println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Switches just need to forward the packets. Sending packet out of the rest of it's ports.")
+        
         for (port <- device.ports.values) {
           if (port.num != device.portReceived) {
             
+            println("Sending packet out of port " + port.num.toString + ".\n")
             routerLearn(port)
           }
         }
@@ -484,12 +489,15 @@ class NetworkSimulator {
             val weight = routerRef.currentWeight + oppPort.portType.speed
             println("Added IP Address " + route._1 + " to routing table with weight " + weight + " through port " + routerRef.portSent.num)
             map += (weight -> routerRef.portSent)
+            routerRef.RoutingTable += (route._1 -> null)
             routerRef.RoutingTable.put(route._1, map)
           }
         }
         
         for (port <- device.ports.values) {
           if (port.num != device.portReceived) {
+            
+            println("Sending packet out of port " + port.num.toString + ".\n")
             routerLearn(port)
           }
         }
@@ -505,30 +513,52 @@ class NetworkSimulator {
       //user must select a device to start with:
       var deviceRef: AnyRef = null
       var splitStringArray:Array[String] = new Array[String](4)
+      
+      // Entry point into our simulation
+      println("************************************************************************************************************************\n************************************************************************************************************************")
+      println("\nSystem booted up. Devices are powering on...\n")
+      println("************************************************************************************************************************\n************************************************************************************************************************")
+      Thread.sleep(sec2)
+      
       // Learning phase
       // This is when router's will try to learn information about the device in the network.
-      println("System booted up. Devices are powering on...")
+    
+      
       for (router <- globalRouterList) {
-        println("Router " + router.name + " booted up.") 
+        println("\nRouter " + router.name + " booted up.")
+        Thread.sleep(sec1)
         router.learnDirectlyConnectedRoutes
       }
       
+            
+      println("\nRouters are powering on. Routers will send data through all ports to learn about it's network.\n")
+      println("************************************************************************************************************************\n************************************************************************************************************************")
+      Thread.sleep(sec2)  
+      
       for (router <- globalRouterList) {
-        println("Router " + router.name + " has initiated learning protocol.")
         
         routerRef = router
-        
-        println("\n\nLearning phase for router " + router.name + " beginning.")
-        //Thread.sleep(500) maybe put a thread.sleep after each print statement to slow down runtime?
-        println("\n\nSending packets out of all ports\n\n")
+        println("************************************************************************************************************************\n************************************************************************************************************************")
+        println("\nLearning phase for router " + router.name + " beginning.")
+        println("Router currently has " + router.RoutingTable.size + " IP Addresses in it's routing table. (One for each connected port)")
+        Thread.sleep(sec1)
+        println("\nStarting to send packets out of all ports.....")
+        Thread.sleep(sec2)
         for (port <- router.ports.values) {
           println("\nSending packet out of port " + port.num.toString + ".")
           router.portSent = port
           router.currentWeight = 0
-          routerLearn(port) 
+          routerLearn(port)
         }
+        println("************************************************************************************************************************\n************************************************************************************************************************")        
+        println("Router " + router.name + " has finished learning about the network.")
+        println("Router now has " + router.RoutingTable.size + " IP Addresses in it's routing table.")
+        println("************************************************************************************************************************\n************************************************************************************************************************")
+
       }
       
+      println("Running simulator...")
+      Thread.sleep(sec2)
       println("Welcome to Scala Network Simulator. Please choose a device to get started or type help.")
       
       /*
