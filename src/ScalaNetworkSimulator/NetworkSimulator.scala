@@ -334,84 +334,72 @@ class NetworkSimulator {
   
   
   
-  /*
-  //sudo code for sending PDU accross the network <----- will rewrite as recursive method
-  def sendPDU( pdu: PDU){
+  def sendPDU(pdu: PDU){
     
-    if (pdu.packet(3) == "null"){
-      requestARP(pdu) 
+    var hopCount: Int = 0
+    var deviceName: String = "not yet queried"
+    //var currentPortIP: String = "not yet set" <----- do not need
+    var timeCount: Int = 0
+    
+    while( pdu.packet(7).asInstanceOf[PortClass].IPAddr != pdu.packet(1) ){//while the packet has not arrived at the correct port 
+      
+      if( pdu.packet(4) == "traceroute" && !pdu.packet(8).isInstanceOf[SwitchClass] ){//if this is a traceroute being sent
+        
+        hopCount += 1
+        timeCount += pdu.packet(7).asInstanceOf[PortClass].portType.speed/60
+        
+        if( pdu.packet(8).isInstanceOf[PCClass]  ){//if the current device reference is a PC
+          deviceName = pdu.packet(8).asInstanceOf[PCClass].name
+        }
+        else{//if the current device reference is a Router
+          deviceName = pdu.packet(8).asInstanceOf[RouterClass].name
+        }
+        println(hopCount + " " + deviceName + " (" + pdu.packet(7).asInstanceOf[PortClass].IPAddr + ") " + timeCount)
+      }//end of traceroute
+        
+      
+      //now update the current device port and current device reference <-----this is how we move the packet from port to port across the network
+      if( pdu.packet(8).isInstanceOf[PCClass] ){//if this device is a PC
+        
+        pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] )//updated the packet port reference to the port on the other side of the Link
+        pdu.packet(8) = pdu.packet(7).asInstanceOf[PortClass].device//updated the packet device reference to the new port's assigned device
+        
+      }else if( pdu.packet(8).isInstanceOf[SwitchClass] ){//if the device is a switch
+        
+        pdu.packet(7) = pdu.packet(8).asInstanceOf[SwitchClass].MACaddrTable.get( pdu.packet(3).asInstanceOf[MACAddress].macAddressValue ) //this queries the switch's MAC address table to produce the outgoing (next) port we need
+        pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] )//since we are already on the outgoing port of this switch we might as well move to the next device instead of wasting another iteration of this while loop
+        pdu.packet(8) = pdu.packet(7).asInstanceOf[PortClass].device//updated the packet device reference to the new port's assigned device
+      }
+      else{//if this device is a router
+        pdu.packet(7) = pdu.packet(8).asInstanceOf[RouterClass].RoutingTable.get( pdu.packet(1).asInstanceOf[IPAddress].ipAddressValue ) //this quries the routing table for the best route that matches this IP address
+        pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] )//since we are on the exit port of this router we might as well move the packet to the next device
+        pdu.packet(8) = pdu.packet(7).asInstanceOf[PortClass].device//updated the packet device reference to the new port's assigned device
+      }
+      
+    }//end while
+    
+    //if we get here we have reached out destination
+    if( pdu.packet(8).isInstanceOf[PCClass] ){//if this device is a PC
+      pdu.packet(8).asInstanceOf[PCClass].checkIncomingDestMac(pdu)
     }
-    
-    while( pdu(1) != pdu(6).getClass().port.num   ){
-        
-        //if the current port is on a PC
-        if( pdu(6).getClass() == PCClass ){
-            pdu(5) = globalLinksTable.get( pdu(6) ).port.num //get the new port number
-            pdu(6) = globalLinksTable.get( pdu(6) ) //how we move to the next device
-            println("sending PDU out of port " + pdu(5).toString() )
-        }
-        
-        //if the current port is on a Switch
-        if( pdu(6).getClass() == SwitchClass ){
-          
-          //if the incoming port # is in the table
-          if( pdu(6).MACAddressTable.contains(pdu(3)) ){
-              
-              //get new port number
-              var tempPort: PortClass = new PortClass
-              tempPort.portnum = pdu(6).MACAddressTable.get( pdu(3)).portnum
-              tempPort.device = pdu(6)
-              
-              //get next port
-              pdu(5) = globalLinksTable.get( tempPort).portnum
-              pdu(6) = globalLinksTable.get( tempPort).device
-          }
-          else{
-              //flood pdu copies out of each port
-              var incomingPort = pdu(5)
-              
-              for( counter <- 1 to pdu(6).portList.size() ){
-                    
-                  //only get next port 
-                  if( pdu(6).portList(counter) != incomingPort ){
-                      
-                        //get Link's nextPort
-                        var tempPort = globalLinksTable.get( pdu(6).portList(counter) )
-                        pdu(5) = tempPort.portnum
-                        pdu(6) = tempPort.device
-                        sendPDUf( this.pdu)
-                      
-                }
-              }//end of for
-          
-            
-            
-          }//end of else
-        }//end of switch
-        
-        
-        //if the current port is on a Router
-        if( pdu(6).getClass == RouterClass ){
-          
-            //get exit port
-            var tempPort: PortClass = new PortClass
-            tempPort.portnum = pdu(6).RoutingTable.get( pdu(3) ).portnum
-            tempPort.device = pdu(6)
-            
-            //get next port on this Link
-            pdu(5) = globalLinksTable.get( tempPort ).portnum
-            pdu(6) = globalLinksTable.get( tempPort ).device
-        }
-        else{
-            println("no known route...dropping packet")
-        }
-        
-        
-        
+    else if( pdu.packet(8).isInstanceOf[RouterClass] ){//if this device is a Router
+      
+      if( pdu.packet(4) == "ping" ){
+        println("64 bytes from (" + pdu.packet(1).asInstanceOf[IPAddress].ipAddressValue + ")    time = " + timeCount)
+      }
+      else if(pdu.packet(4) == "traceroute"){
+        println(hopCount + " " + deviceName + " (" + pdu.packet(7).asInstanceOf[PortClass].IPAddr + ") " + timeCount)
+      }
+      else{
+        println("Device " + pdu.packet(8).asInstanceOf[RouterClass].name + " is dropping packet because this command " + pdu.packet(4) + " is not recognized.")
+
+      }
+      
     }
-    
-    
-  }//end sendPDU*/
+    else{//there is not reason other than testing or a mistake in the code to reach a switch as your PDU's final destination -----> Note: we do not current provide management IP's for switches
+      println("Device " + pdu.packet(8).asInstanceOf[SwitchClass].name + " is dropping packet.")
+    }
+}
   
   
   //this object builds the network

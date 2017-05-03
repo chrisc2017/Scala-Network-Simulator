@@ -247,6 +247,8 @@ class IPAddress(inputIP: String, inputSubnet: String){
   
   //we are expecting inputIP like "192.168.12.19"
   
+  var ipAddressValue: String
+  /*
   var ipAddressValue:Array[Int] = new Array[Int](4)
   var ipSubnetMask: Array[Int] = new Array[Int](4)
   
@@ -322,7 +324,7 @@ class IPAddress(inputIP: String, inputSubnet: String){
       counter + 1
     }//end loop
   }*/
-  
+  */
   
 }//end of IPAddress class
 
