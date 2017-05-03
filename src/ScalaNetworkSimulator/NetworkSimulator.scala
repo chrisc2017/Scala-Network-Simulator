@@ -485,11 +485,10 @@ class NetworkSimulator {
         println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Router will send it's information it currently has.")
         for (route <- device.RoutingTable) {
           if (!routerRef.RoutingTable.contains(route._1)) {
-            val map = route._2
+            val map = mutable.HashMap[Int, PortClass]()
             val weight = routerRef.currentWeight + oppPort.portType.speed
             println("Added IP Address " + route._1 + " to routing table with weight " + weight + " through port " + routerRef.portSent.num)
             map += (weight -> routerRef.portSent)
-            routerRef.RoutingTable += (route._1 -> null)
             routerRef.RoutingTable.put(route._1, map)
           }
         }
