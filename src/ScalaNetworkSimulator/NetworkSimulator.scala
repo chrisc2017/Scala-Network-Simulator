@@ -12,6 +12,7 @@ class NetworkSimulator {
   var protocolRef: RoutingProtocolClass = null
   var linkRef: LinkClass = null
   var routerRef: RouterClass = null
+  var currentDevice: AnyRef = null
 
   // This table holds all the devices (Swithces,using their name as the key 
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
@@ -23,8 +24,8 @@ class NetworkSimulator {
   var globalPortTypeTable: mutable.HashMap[String, PortTypeClass] = new mutable.HashMap[String, PortTypeClass]()
   
   // MAGIC NUMBERS
-  var sec1 = 1000
-  var sec2 = 2000
+  var sec1 = 1
+  var sec2 = 2
   
   globalPortTypeTable += ("Fiber" -> new PortTypeClass("Fiber", 100, 100))
   globalPortTypeTable += ("Ethernet" -> new PortTypeClass("Ethernet", 10, 10))
@@ -361,7 +362,7 @@ class NetworkSimulator {
       //now update the current device port and current device reference <-----this is how we move the packet from port to port across the network
       if( pdu.packet(8).isInstanceOf[PCClass] ){//if this device is a PC
         
-        pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] )//updated the packet port reference to the port on the other side of the Link
+        pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] ).get//updated the packet port reference to the port on the other side of the Link
         pdu.packet(8) = pdu.packet(7).asInstanceOf[PortClass].device//updated the packet device reference to the new port's assigned device
         
       }else if( pdu.packet(8).isInstanceOf[SwitchClass] ){//if the device is a switch
@@ -416,7 +417,6 @@ class NetworkSimulator {
     
     var s: String = ""
     var input: String = ""
-    var currentDevice: AnyRef = ""
     
     /*commands the user will have available:
     *
@@ -548,35 +548,35 @@ class NetworkSimulator {
       Thread.sleep(sec2)
       println("Welcome to Scala Network Simulator. Please choose a device to get started or type help.")
       
-      /*
+      
       while( s != "exit" ){
            print("> ")
            s = readLine(input)//provides the user with a prompt
            splitStringArray = s.split(" ") //think about error checking the number of arguments later
            
            if(splitStringArray(0) == "ping" ){
-             config.ping( splitStringArray(1) ) //send command will call sendPDU
+             ping( splitStringArray(1) ) //send command will call sendPDU
            }
            else if(splitStringArray(0) == "traceroute" ){
-             config.traceroute( splitStringArray(2)) //send command will call sendPDU
+             traceroute( splitStringArray(2)) //send command will call sendPDU
            }
            else if(splitStringArray(0) == "send" ){
-             config.send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+             send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
            }
-           else if(splitStringArray(1) == "inspect" ){
-             config.inspect( splitStringArray(2) )
+           else if(splitStringArray(0) == "inspect" ){
+             //inspect( splitStringArray(2) )
            }
-           else if(splitStringArray(1) == "changeDevice" ){
-             config.changeDevice( splitStringArray(1) )
+           else if(splitStringArray(0) == "changeDevice" ){
+             changeDevice( splitStringArray(1) )
            }
-           else if(splitStringArray(1) == "help" ){
-             config.help //is this how we run a stand alone command with no arguments?
+           else if(splitStringArray(0) == "help" ){
+             //help() //is this how we run a stand alone command with no arguments?
            }
-           else if(splitStringArray(1) == "exit" ){
+           else if(splitStringArray(0) == "exit" ){
              s = "exit"
            }
             
-        } */
+        } 
       
       println("Thank you for trying the Scala Network Simulator")
     }
@@ -680,12 +680,11 @@ class NetworkSimulator {
     
     
     def changeDevice( inputName: String){
-      
-     
-      var newDevice: AnyRef = null
- 
+      print("entered")
       if( globalDeviceTable.contains(inputName) ){
-        newDevice = globalDeviceTable.get(inputName)
+        print("found")
+        currentDevice = globalDeviceTable.get(inputName).get
+        print(currentDevice)
       }
       else{
           println("Device does not exist in simulation. Please check your spelling and try again. ")
@@ -696,7 +695,7 @@ class NetworkSimulator {
     
     
     //prints to CLI the available commands
-    def help{
+    def help(){
       println("------------------------available commands------------------------")
       println()
       println("exit		-> Ends the simulation")
