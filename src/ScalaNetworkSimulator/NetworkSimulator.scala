@@ -451,6 +451,9 @@ class NetworkSimulator {
       // Gets the port from the opposite end of our port
       var oppPort: PortClass = globalLinksTable.get(port).get
       if (oppPort.device.isInstanceOf[SwitchClass]) {
+        
+        routerRef.currentWeight += port.portType.speed
+        
         var device = oppPort.device.asInstanceOf[SwitchClass]
         device.portReceived = oppPort.num
         println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Switches just need to forward the packets. Sending packet out of the rest of it's ports.")
@@ -467,7 +470,11 @@ class NetworkSimulator {
         println(device.devType + " " + device.name + " received a packet at port " + oppPort.num +". Router will send it's information it currently has.")
         for (route <- device.RoutingTable) {
           if (!routerRef.RoutingTable.contains(route._1)) {
-            routerRef.RoutingTable += route
+            val map = route._2
+            val weight = routerRef.currentWeight + oppPort.portType.speed
+            println("Added IP Address " + route._1 + " to routing table with weight " + weight + " through port " + routerRef.portSent.num)
+            map += (weight -> routerRef.portSent)
+            routerRef.RoutingTable.put(route._1, map)
           }
         }
         
@@ -506,7 +513,8 @@ class NetworkSimulator {
         println("\n\nSending packets out of all ports\n\n")
         for (port <- router.ports.values) {
           println("\nSending packet out of port " + port.num.toString + ".")
-          router.portSent = port.num
+          router.portSent = port
+          router.currentWeight = 0
           routerLearn(port) 
         }
       }

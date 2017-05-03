@@ -54,10 +54,11 @@ class RouterClass(pname: String) {
   var devType = "Router"
   var ports = new mutable.HashMap[Int, PortClass]()
   var portReceived = -1
-  var portSent = -1
+  var portSent: PortClass = null
+  var currentWeight = 0
   var protocol: RoutingProtocolClass = null
   var ARPTable = new mutable.HashMap[String, String]()//stores map of IP address -> mac address (allows us to need fewer arp requests as the simulation progresses)
-  var RoutingTable = new mutable.HashMap[String, mutable.HashSet[PortClass]]()// stores map of port# -> IP address (allows us to send data out the correct port)
+  var RoutingTable = new mutable.HashMap[String, mutable.HashMap[Int, PortClass]]()// stores map of port# -> IP address (allows us to send data out the correct port)
 
 
   def addPort(port: PortClass) = {
@@ -87,9 +88,9 @@ class RouterClass(pname: String) {
     
     for (port <- ports.values){
       println("Router " + this.name + " has learned about port " + port.num + " with IP Address " + port.IPAddr)
-      val set = new mutable.HashSet()
-      set += port
-      RoutingTable += ( port.IPAddr -> port)
+      val map = mutable.HashMap[Int, PortClass]()
+      map += ( port.portType.speed -> port)
+      RoutingTable += ( port.IPAddr -> map)
     }//end loop
     
   }
