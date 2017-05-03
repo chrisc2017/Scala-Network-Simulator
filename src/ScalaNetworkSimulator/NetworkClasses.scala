@@ -243,11 +243,112 @@ class PortClass(portNum: Int) {
 
 
 //------------------------------------------------------------------
-class IPAddress(inputIP: String, inputSubnet: String){
+class IPAddress(inputIP: String){
   
   //we are expecting inputIP like "192.168.12.19"
   
   var ipAddressValue: String
+  
+  
+  def sameSubnetTest(inputIPA: IPAddress, inputIPB: IPAddress, inputSubNetMask: IPAddress) = {
+    
+    //var tempBits: Array[Int] = new Array[Int](8) 
+    var splitA: Array[String] = inputIPA.ipAddressValue.split(".")
+    var splitB: Array[String] = inputIPB.ipAddressValue.split(".")
+    var splitMask: Array[String] = inputSubNetMask.ipAddressValue.split(".")
+    
+    var bitsA: Array[Int] = new Array[Int](8)
+    var bitsB: Array[Int] = new Array[Int](8)
+    var bitsMask: Array[Int] = new Array[Int](8)
+    
+    bitsMask = toBitArray( splitMask(0) )
+    
+    var i: Int = 0
+    var j: Int = 7
+    
+    for( indexY <- 1 until 4){//loop through each of the four octets
+      
+      for( indexZ <- i until j){ //loops through each bit in the octet
+         bitsA(i) = 
+      }
+      i += 8
+      j += 8
+      
+    }
+    
+    
+   
+  }//end of sameSubnetTest
+  
+  
+  
+  def toBitArray(inputString: String) ={
+    
+    var bitArray: Array[Int] = new Array[Int](8)
+    var num: Int = inputString.toInt
+    
+    if( (num -128) >= 0 ){ //128
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 64) >= 0 ){ //64
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 32) >= 0 ){ //32
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 16) >= 0 ){ //16
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num -8) >= 0 ){ //8
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 4) >= 0 ){ //4
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 2) >= 0 ){ //2
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    if( (num - 1) >= 0 ){ //1
+      bitArray(0) = 1
+    }
+    else{
+      bitArray(0) = 0
+    }
+    
+    
+    
+  }
+  
+  
+  
   /*
   var ipAddressValue:Array[Int] = new Array[Int](4)
   var ipSubnetMask: Array[Int] = new Array[Int](4)
