@@ -250,7 +250,7 @@ class IPAddress(inputIP: String){
   var ipAddressValue: String
   
   
-  def sameSubnetTest(inputIPA: IPAddress, inputIPB: IPAddress, inputSubNetMask: IPAddress) = {
+  def sameSubnetTest(inputIPA: IPAddress, inputIPB: IPAddress, inputSubNetMask: IPAddress): Boolean = {
     
     //var tempBits: Array[Int] = new Array[Int](8) 
     var splitA: Array[String] = inputIPA.ipAddressValue.split(".")
@@ -296,13 +296,17 @@ class IPAddress(inputIP: String){
       }
     }
     
+    if( answerA.toString() == answerB.toString() )
+      return true
+    else
+      return false
     
    
   }//end of sameSubnetTest
   
   
   
-  def toBitArray(inputString: String) ={
+  def toBitArray(inputString: String): Array[Int] {
     
     var bitArray: Array[Int] = new Array[Int](8)
     var num: Int = inputString.toInt
