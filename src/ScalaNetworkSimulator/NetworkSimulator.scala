@@ -671,22 +671,26 @@ class NetworkSimulator {
       
       
       if( currentDevice.isInstanceOf[PCClass]){
+        println("All data currently in the PC's ARP table.")
           for (data <- currentDevice.asInstanceOf[PCClass].ARPTable) {
             println(data._1)
             println(data._2)
           }
       }
       else if( currentDevice.isInstanceOf[SwitchClass]){
+        println("All data currently in the switch's MAC Address table.")
         for (data <- currentDevice.asInstanceOf[SwitchClass].MACaddrTable) {
           println(data._1)
           println(data._2)
         }
       }
       else if( currentDevice.isInstanceOf[RouterClass]){
+        println("All data currently in the router's ARP table.")
         for (data <- currentDevice.asInstanceOf[RouterClass].ARPTable) {
           println(data._1)
           println(data._2)
         }
+        println("All data currently in the router's routing table.")
         for (data <- currentDevice.asInstanceOf[RouterClass].RoutingTable) {
           println(data._1)
           println(data._2)
