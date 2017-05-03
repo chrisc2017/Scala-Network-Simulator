@@ -162,13 +162,15 @@ class PCClass(pname: String) {
       
       //now determine the action to take based on the pdu.packet(4)
       if( incomingPDU.packet(4) == "storeThis" ){//store what ever was sent to this device in storage hashMap
-        assignStorage( incomingPDU.packet(5).toString() , incomingPDU.packet(6).toString() )
+        assignStorage( incomingPDU.packet(5).toString() , incomingPDU.packet(8).toString() )
         //sendPDU with these values:
         /*
          *myPDU.packet(4) = "Acknowledged - successful"
          *myPDU.packet(5) = "null" 
          *myPDU.packet(6) =  "null"
          */
+        println("Acknowledged - successful storage of file: " + incomingPDU.packet(5))
+        
       }
       else if(incomingPDU.packet(4) == "replyWith"){//retrieve the Value of the sent Key and then send the value back to the sending PC
         retrieveStorage( incomingPDU.packet(5).toString() )
@@ -178,6 +180,7 @@ class PCClass(pname: String) {
          *myPDU.packet(5) = "null" 
          *myPDU.packet(6) =  "null"
          */
+        println("Acknowledged - successful retrieval of data: " + incomingPDU.packet(6))
       }
       else if(incomingPDU.packet(4) == "ARPrequest"){
         //sendPDU()

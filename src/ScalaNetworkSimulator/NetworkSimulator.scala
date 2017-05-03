@@ -582,7 +582,7 @@ class NetworkSimulator {
     }
     
     
-    /*
+    
     def ping(inputIP: String){
       
       var myPDU = new PDU()
@@ -650,7 +650,7 @@ class NetworkSimulator {
       }      
     }
     
-    
+    /*
     def inspect(inputTable: String){
       //inspect [mactable | arptable | routingtable]
       
@@ -675,8 +675,9 @@ class NetworkSimulator {
       }
       
     }
-    
     */
+    
+    
     
     def changeDevice( inputName: String){
       
