@@ -14,11 +14,11 @@ class NetworkSimulator {
   var routerRef: RouterClass = null
   var currentDevice: AnyRef = null
 
-  // This table holds all the devices (Swithces,using their name as the key 
+  // global tables 
   var globalDeviceTable: mutable.HashMap[String, AnyRef] = new mutable.HashMap[String, AnyRef]()
   var globalProtocolTable: mutable.HashMap[String, RoutingProtocolClass] = new mutable.HashMap[String, RoutingProtocolClass]()
   var globalLinksTable: mutable.HashMap[PortClass, PortClass] = new mutable.HashMap[PortClass, PortClass]()
-  var globalMACaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
+  var globalMACaddressCheck: mutable.HashMap[String, MACAddress] = new mutable.HashMap[String, MACAddress]()
   var glabalIPaddressCheck: mutable.HashSet[String] = new mutable.HashSet[String]()
   var globalRouterList: mutable.ArrayBuffer[RouterClass] = new mutable.ArrayBuffer[RouterClass]()
   var globalPortTypeTable: mutable.HashMap[String, PortTypeClass] = new mutable.HashMap[String, PortTypeClass]()
@@ -194,6 +194,9 @@ class NetworkSimulator {
       }*/
       
       portRef.IPAddr = IPAddr
+      portRef.MACAddr = new MACAddress()
+      portRef.MACAddr.makeMAC(IPAddr)
+      
     }
     
   }
@@ -367,7 +370,7 @@ class NetworkSimulator {
         
       }else if( pdu.packet(8).isInstanceOf[SwitchClass] ){//if the device is a switch
         
-        pdu.packet(7) = pdu.packet(8).asInstanceOf[SwitchClass].MACaddrTable.get( pdu.packet(3).asInstanceOf[MACAddress].macAddressValue ) //this queries the switch's MAC address table to produce the outgoing (next) port we need
+        pdu.packet(7) = pdu.packet(8).asInstanceOf[SwitchClass].MACaddrTable.get(pdu.packet(3).asInstanceOf[String]).get //this queries the switch's MAC address table to produce the outgoing (next) port we need
         pdu.packet(7) = globalLinksTable.get( pdu.packet(7).asInstanceOf[PortClass] )//since we are already on the outgoing port of this switch we might as well move to the next device instead of wasting another iteration of this while loop
         pdu.packet(8) = pdu.packet(7).asInstanceOf[PortClass].device//updated the packet device reference to the new port's assigned device
       }
@@ -550,6 +553,12 @@ class NetworkSimulator {
       
       
       while( s != "exit" ){
+           if (currentDevice.isInstanceOf[PCClass]) {
+             print(currentDevice.asInstanceOf[PCClass].name)
+           }
+           else {
+             print("Admin")
+           }
            print("> ")
            s = readLine(input)//provides the user with a prompt
            splitStringArray = s.split(" ") //think about error checking the number of arguments later
@@ -570,7 +579,7 @@ class NetworkSimulator {
              changeDevice( splitStringArray(1) )
            }
            else if(splitStringArray(0) == "help" ){
-             //help() //is this how we run a stand alone command with no arguments?
+             help //is this how we run a stand alone command with no arguments?
            }
            else if(splitStringArray(0) == "exit" ){
              s = "exit"
@@ -589,7 +598,7 @@ class NetworkSimulator {
       myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
       myPDU.packet(1) = inputIP
       myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
-      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP).get
     
       myPDU.packet(4) = "ping"
       myPDU.packet(5) = null
@@ -629,7 +638,7 @@ class NetworkSimulator {
       myPDU.packet(0) = currentDevice.asInstanceOf[PCClass].port.IPAddr
       myPDU.packet(1) = inputIP
       myPDU.packet(2) = currentDevice.asInstanceOf[PCClass].port.MACAddr
-      myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP)
+      //myPDU.packet(3) = currentDevice.asInstanceOf[PCClass].ARPTable.get(inputIP).get
     
       myPDU.packet(5) = inputData
       myPDU.packet(6) = null
@@ -680,11 +689,9 @@ class NetworkSimulator {
     
     
     def changeDevice( inputName: String){
-      print("entered")
       if( globalDeviceTable.contains(inputName) ){
-        print("found")
         currentDevice = globalDeviceTable.get(inputName).get
-        print(currentDevice)
+        println("Found " + currentDevice.asInstanceOf[PCClass].name + ". Switching to PC.")
       }
       else{
           println("Device does not exist in simulation. Please check your spelling and try again. ")
@@ -696,19 +703,20 @@ class NetworkSimulator {
     
     //prints to CLI the available commands
     def help(){
-      println("------------------------available commands------------------------")
+      println("------------------------------------------------available commands------------------------------------------------")
       println()
-      println("exit		-> Ends the simulation")
+      println("exit		                                                        -> Ends the simulation")
       println()
-      println("changedevice <device name>		-> Changes to another device's CLI.")
+      println("changedevice <device name>	                                   	-> Changes to another device's CLI.")
       println()
-      println("send <IP address> <filename> <String of char without spaces>		-> sends data specified as a String without spaces across the network to another IP.")
+      println("send <IP address> <format> <String of char without spaces>              -> sends data specified as a String without spaces across the network to another IP.")
       println()
-      println("ping <IP>		-> Checks the availability of an IP address.")
+      println("ping <IP>		                                                -> Checks the availability of an IP address.")
       println()
-      println("traceroute <IP>		-> Prints the path from the current device to the specified IP address.")
+      println("traceroute <IP>		                                                -> Prints the path from the current device to the specified IP address.")
       println()
-      println("inspect [mactable | arptable | routingtable]		-> Prints the contents of the specified table from the current device.")
+      println("inspect [mactable | arptable | routingtable]		                -> Prints the contents of the specified table from the current device.")
+      println()
     }
     
     

@@ -239,7 +239,7 @@ class PortClass(portNum: Int) {
   //Look in our PortType Global List for portType = object.name
   var portType: PortTypeClass = null
   var num = portNum
-  var MACAddr = "None"
+  var MACAddr: MACAddress = null
   var IPAddr: String = "None"
   var device: AnyRef = null
 }
@@ -494,11 +494,14 @@ class IPAddress(inputIP: String){
 
 
 
-
 class MACAddress{
   
   var macAddressValue: String = ""
   
+  def makeMAC(value: String) {
+    macAddressValue = value.hashCode().toString
+    ScalaNetworkSimulator.globalMACaddressCheck += (macAddressValue -> this)
+  }
   
 
   def generateNewMAC{//generates a new unique mac address
@@ -553,13 +556,13 @@ class MACAddress{
         }//end of loop
     
         
-        if( !ScalaNetworkSimulator.globalMACaddressCheck.contains(newMac) ){//need to fix this object call
-          isUniqueMAC = true
-          ScalaNetworkSimulator.globalMACaddressCheck += newMac;
-        }
-        else{
-          newMac = "CCCCCC"
-        }
+    if( !ScalaNetworkSimulator.globalMACaddressCheck.contains(newMac) ){//need to fix this object call
+      isUniqueMAC = true
+      ScalaNetworkSimulator.globalMACaddressCheck += (newMac -> this)
+    }
+    else{
+      newMac = "CCCCCC"
+    }
     } while(isUniqueMAC == false);
   }//end of function
   
@@ -580,7 +583,7 @@ class MACAddress{
 
 class PDU{//this class just gives us a structure to store the Data and the header information needed to send it accross networks
   
-  var packet:Array[Any] = new Array[Any](9)
+  var packet:Array[AnyRef] = new Array[AnyRef](9)
   
   
   

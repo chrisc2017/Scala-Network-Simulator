@@ -3,7 +3,6 @@ package ScalaNetworkSimulator
 object ScalaNetworkSimulator  extends NetworkSimulator{
   
   def main( args: Array[String] ){
-    
 
     Switch name "sw1";
       port num 3 uses "Fiber";
@@ -47,7 +46,7 @@ object ScalaNetworkSimulator  extends NetworkSimulator{
       connect deviceA "r2" portA 9 deviceB "sw2" portB 10;
       connect deviceA "sw2" portA 11 deviceB "Smith's_PC" portB 13;
       connect deviceA "sw2" portA 12 deviceB "Guest's_PC" portB 14;
-    
+      
     Config Network;
       
     print("everything worked!")
