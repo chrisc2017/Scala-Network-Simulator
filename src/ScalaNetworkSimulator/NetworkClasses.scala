@@ -119,7 +119,7 @@ class PCClass(pname: String) {
   var portReceived = -1
   var ARPTable = new mutable.HashMap[String, String]()//stores map of IP address -> mac address (allows us to need fewer arp requests as the simulation progresses)
   
-  var dafaultGateway: String = "null" //IP address of this network's router
+  var defaultGateway: String = "null" //IP address of this network's router
   var subnetMask: String = "null" //subnet mask helps us determine if another PC is within the same LAn as this PC
   var ipAddress: String  = "null"
   

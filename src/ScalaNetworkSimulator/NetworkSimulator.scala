@@ -195,6 +195,16 @@ class NetworkSimulator {
     
   }
   
+  object Default {
+    
+    def Gateway(IPAddr: String) = {
+      if (deviceRef.isInstanceOf[PCClass]) {
+        deviceRef.asInstanceOf[PCClass].defaultGateway = IPAddr
+      }
+    }
+  }
+  
+  
   // Links between devices
   // We only use this object as a syntax requirement (meaning you have to specify your Links; section in the configuration)
   object Links {
