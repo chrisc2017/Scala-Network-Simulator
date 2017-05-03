@@ -570,13 +570,28 @@ class NetworkSimulator {
            splitStringArray = s.split(" ") //think about error checking the number of arguments later
            
            if(splitStringArray(0) == "ping" ){
-             ping( splitStringArray(1) ) //send command will call sendPDU
+             if (!currentDevice.isInstanceOf[PCClass]) {
+               println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
+             }
+             else {
+               ping( splitStringArray(1) ) //send command will call sendPDU
+             }
            }
            else if(splitStringArray(0) == "traceroute" ){
-             traceroute( splitStringArray(2)) //send command will call sendPDU
+             if (!currentDevice.isInstanceOf[PCClass]) {
+               println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
+             }
+             else {
+               traceroute( splitStringArray(2)) //send command will call sendPDU
+             }
            }
            else if(splitStringArray(0) == "send" ){
-             send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+             if (!currentDevice.isInstanceOf[PCClass]) {
+               println("You cannot send data from a Router or Switch. Please change to a PC and try to send again.")
+             }
+             else {
+               send( splitStringArray(1), splitStringArray(2), splitStringArray(3) ) //send command will call sendPDU
+             }
            }
            else if(splitStringArray(0) == "inspect" ){
              inspect
